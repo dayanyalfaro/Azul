@@ -1,6 +1,6 @@
 :- consult(matrix).
 
-dynamic(player_score/2, player_wall/2, player_stair/2, player_penalty/2).
+:- dynamic(player_score/2, player_wall/2, player_stair/2, player_penalty/2).
 
 %-----------------Player ATTR
 set_score(ID, SCORE) :- ( (retract(player_score(ID, _)), !) ; true ) , assert(player_score(ID, SCORE)).

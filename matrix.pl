@@ -46,15 +46,33 @@ print_cell(4 , 1):- ansi_format([bold, fg(black)], '(X) ', []).
 print_cell(5 , 0):- ansi_format([bold, fg(white)], '(_) ', []).
 print_cell(5 , 1):- ansi_format([bold, fg(white)], '(X) ', []).
 
+print_stair(0):- ansi_format([bold, fg(cyan)], '(_) ', []).
+print_stair(1):- ansi_format([bold, fg(blue)], '(x) ', []).
+print_stair(2):- ansi_format([bold, fg(yellow)], '(X) ', []).
+print_stair(3):- ansi_format([bold, fg(red)], '(X) ', []).
+print_stair(4):- ansi_format([bold, fg(black)], '(X) ', []).
+print_stair(5):- ansi_format([bold, fg(white)], '(X) ', []).
 
-print_row([]):- write('\n').
-print_row([X|T]):- selectk(X, 1, C), selectk(X, 2, S), print_cell(C, S), print_row(T).
- 
-select_row(ID, 1, _, T):- findall([Color, State], cell(ID, 1, _, Color, State), T ), print_row(T).
-select_row(ID, 2, _, T):- findall([Color, State], cell(ID, 2, _, Color, State), T ), print_row(T).
-select_row(ID, 3, _, T):- findall([Color, State], cell(ID, 3, _, Color, State), T ), print_row(T).
-select_row(ID, 4, _, T):- findall([Color, State], cell(ID, 4, _, Color, State), T ), print_row(T).
-select_row(ID, 5, _, T):- findall([Color, State], cell(ID, 5, _, Color, State), T ), print_row(T).
 
-print_board(ID, 5):- select_row(ID, 5, _, _) , !.
-print_board(ID, R) :- select_row(ID, R, _, _), R1 is R + 1, print_board(ID, R1).
+print_stair_row(ID, 1):- write('|                '), stair(ID, 1, 1, S), print_stair(S), write('  |  ').
+print_stair_row(ID, 2):- write('|            '), stair(ID, 2, 1, S1), print_stair(S1), stair(ID, 2, 2, S2), print_stair(S2), write('  |  ').
+print_stair_row(ID, 3):- write('|        '), stair(ID, 3, 1, S1), print_stair(S1), stair(ID, 3, 2, S2), print_stair(S2), stair(ID, 3, 3, S3), print_stair(S3), write('  |  ').
+print_stair_row(ID, 4):- write('|    '), stair(ID, 4, 1, S1), print_stair(S1), stair(ID, 4, 2, S2), print_stair(S2), stair(ID, 4, 3, S3), print_stair(S3), stair(ID, 4, 4, S4), print_stair(S4), write('  |  ').
+print_stair_row(ID, 5):- write('|'), stair(ID, 5, 1, S1), print_stair(S1), stair(ID, 5, 2, S2), print_stair(S2), stair(ID, 5, 3, S3), print_stair(S3), stair(ID, 5, 5, S4), print_stair(S4), stair(ID, 5, 5, S5), print_stair(S5), write('  |  ').
+
+
+print_wall_row(ID, 1):- cell(ID, 1, 1, C1, S1), print_cell(C1, S1), cell(ID, 1, 2, C2, S2), print_cell(C2, S2), cell(ID, 1, 3, C3, S3), print_cell(C3, S3), cell(ID, 1, 4, C4, S4), print_cell(C4, S4), cell(ID, 1, 5, C5, S5), print_cell(C5, S5) .
+print_wall_row(ID, 2):- cell(ID, 2, 1, C1, S1), print_cell(C1, S1), cell(ID, 2, 2, C2, S2), print_cell(C2, S2), cell(ID, 2, 3, C3, S3), print_cell(C3, S3), cell(ID, 2, 4, C4, S4), print_cell(C4, S4), cell(ID, 2, 5, C5, S5), print_cell(C5, S5) .
+print_wall_row(ID, 3):- cell(ID, 3, 1, C1, S1), print_cell(C1, S1), cell(ID, 3, 2, C2, S2), print_cell(C2, S2), cell(ID, 3, 3, C3, S3), print_cell(C3, S3), cell(ID, 3, 4, C4, S4), print_cell(C4, S4), cell(ID, 3, 5, C5, S5), print_cell(C5, S5) .
+print_wall_row(ID, 4):- cell(ID, 4, 1, C1, S1), print_cell(C1, S1), cell(ID, 4, 2, C2, S2), print_cell(C2, S2), cell(ID, 4, 3, C3, S3), print_cell(C3, S3), cell(ID, 4, 4, C4, S4), print_cell(C4, S4), cell(ID, 4, 5, C5, S5), print_cell(C5, S5) .
+print_wall_row(ID, 5):- cell(ID, 5, 1, C1, S1), print_cell(C1, S1), cell(ID, 5, 2, C2, S2), print_cell(C2, S2), cell(ID, 5, 3, C3, S3), print_cell(C3, S3), cell(ID, 5, 4, C4, S4), print_cell(C4, S4), cell(ID, 5, 5, C5, S5), print_cell(C5, S5) .
+
+print_board_row(ID, 1):- print_stair_row(ID, 1), print_wall_row(ID, 1), write('| \n').
+print_board_row(ID, 2):- print_stair_row(ID, 2), print_wall_row(ID, 2), write('| \n').
+print_board_row(ID, 3):- print_stair_row(ID, 3), print_wall_row(ID, 3), write('| \n').
+print_board_row(ID, 4):- print_stair_row(ID, 4), print_wall_row(ID, 4), write('| \n').
+print_board_row(ID, 5):- print_stair_row(ID, 5), print_wall_row(ID, 5), write('| \n').
+
+print_line():- write('-----------------------------------------------\n').
+
+print(ID):- print_line(), print_board_row(ID, 1), print_board_row(ID, 2), print_board_row(ID, 3), print_board_row(ID, 4), print_board_row(ID, 5), print_line().
