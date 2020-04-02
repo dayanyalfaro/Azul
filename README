@@ -1,0 +1,22 @@
+----environment.pl
+     
+     ATTR                               Property
+1- cant_players(X)               set_cant_players(C)
+2- cant_factory(F)               set_cant_factory(F)
+3- factory(ID, B, Y, R, G, W)    set_factory(ID, B, Y, R, G, W)
+4- center(T, B, Y, R, G, W)      set_center(T, B, Y, R, G, W)
+
+5- bag(Size, L) Size: Cantidad de tiles en la bolsa, L: lista de tiles por ejemplo [1,1,1,1,2,2,3,4,5]
+6- lid(Size, L) igual que la bolsa
+
+7-remove_tile_bag(C). deja en C uno color random de la bolsa, si la bolsa esta vacia C = -1.
+                      Al llenar una factoria y la bolsa se queda vacia, esta ultima retorna el color -1 el cula no matchea 
+                      con ninguno de los colores por tanto no se annadira a la factoria  
+
+8-fill_bag(). rellena la bolsa con todos los tiles de lid, esta ultima se queda vacia
+9-add_tile_lid(C). annade a la lid un tile con color C
+
+10-remove_tiles_factory(ID, C, Cant). elimina de la factoria Id todos los tiles de color C y te deja en Cant cuantos fueron
+11-remove_tiles_center(C, Cant) elimina del centro todos los tiles de color C y te deja en Cant cuantos fueron
+
+Para ejecutar el environment haces init_play(CantPlayers).
