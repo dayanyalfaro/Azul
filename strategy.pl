@@ -1,3 +1,5 @@
+:- consult(environment).
+
 strategy(Source, Color, Amount, Stair, Chip) :-
     Source is 1,
     Color is 2,
