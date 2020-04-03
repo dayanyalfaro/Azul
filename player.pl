@@ -26,8 +26,10 @@ init_player(ID) :-
 
 %-----(Fase 1)----Player action: pick a movement and execute it 
 
-%TODO
-update_environment(_, _, _, _).
+%Update factory or table center after player takes tiles
+update_environment(0,Color,Chip):- remove_tiles_center(Color,_),Chip =:= 1 -> remove_chip_center().
+update_environment(Source, Color, _) :-
+    remove_tiles_factory(Source, Color, _).
 
 %Place tile by tile on the lid
 update_lid(0, _) :- !.
@@ -37,6 +39,7 @@ update_lid(Amount, Color) :-
     update_lid(K, Color).
 
 %Put the fist player chip in the floor if it was taken 
+%TODO set player ID as first_player
 place_chip(_, 0) :- !.
 place_chip(ID, 1) :-
     place_extras(ID, -1, 1).
@@ -80,7 +83,7 @@ place_colors(ID, Stair, Color, Amount) :-
 %Pick a movement and execute it 
 pick(ID) :-
     strategy(Source, Color, Amount, Stair, Chip),
-    update_environment(Source, Color, Amount, Chip),
+    update_environment(Source, Color, Chip),
     place_chip(ID, Chip),
     place_colors(ID, Stair, Color, Amount).
 
