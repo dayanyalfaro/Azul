@@ -26,14 +26,27 @@ init_player(ID) :-
 
 %-----(Fase 1)----Player action: pick a movement and execute it 
 
-%Update factory or table center after player takes tiles
-update_environment(0,Color,Chip):- remove_tiles_center(Color,_),Chip =:= 1 -> remove_chip_center().
+%Update center after player takes tiles
+update_environment(0,Color,Chip):-!, remove_tiles_center(Color,_),(Chip =:= 1 -> remove_chip_center();true).
+%Move the rest of tiles to the table center after the player take the selected tiles 
 update_environment(Source, Color, _) :-
-    remove_tiles_factory(Source, Color, _).
+    remove_tiles_factory(Source, Color, _),
+    remove_B_factory(Source, B),
+    remove_Y_factory(Source, Y),
+    remove_R_factory(Source, R),
+    remove_G_factory(Source, G),
+    remove_W_factory(Source, W),
+    add_tile_center(1, B),
+    add_tile_center(2, Y),
+    add_tile_center(3, R),
+    add_tile_center(4, G),
+    add_tile_center(5, W).
+
 
 %Place tile by tile on the lid
-update_lid(0, _) :- !.
+update_lid(Amount, _) :- Amount =< 0.
 update_lid(Amount, Color) :-
+    Amount > 0,
     add_tile_lid(Color),
     K is Amount-1,
     update_lid(K, Color).
@@ -48,17 +61,16 @@ place_chip(ID, 1) :-
 update_floor(_, _, _, 0) :- !. 
 update_floor(_, [], _, _) :- !. 
 update_floor(ID, [P|Unset], Color, Amount) :-
-    floor(ID, P, _, Penalty),
-    set_value_floor(ID, P, Color, Penalty),
+    set_value_floor(ID, P, Color),
     K is Amount-1,
     update_floor(ID, Unset, Color, K).
 
 %Place the extra tiles of the stair on the floor
 place_extras(_, _, Extra) :-
-    Extra=<0, !.
+    Extra=<0.
 place_extras(ID, Color, Extra) :-
     Extra>0,
-    setof(P, floor(ID, P, 0, _), Unset),
+    setof(P, Penalty^floor(ID, P, 0, Penalty), Unset),
     update_floor(ID, Unset, Color, Extra),
     length(Unset, L),
     Garbage is Extra-L,
@@ -73,6 +85,8 @@ update_stair(ID, Stair, [P|Unset], Color, Amount) :-
     update_stair(ID, Stair, Unset, Color, K).
 
 %Fill a stair according to the amount and color of the taken tiles and place the extra tiles on the floor
+place_colors(ID, 0, Color, Amount) :-
+    !, place_extras(ID, Color, Amount).
 place_colors(ID, Stair, Color, Amount) :-
     setof(P, stair(ID, Stair, P, 0), Unset),
     update_stair(ID, Stair, Unset, Color, Amount),
@@ -82,7 +96,8 @@ place_colors(ID, Stair, Color, Amount) :-
 
 %Pick a movement and execute it 
 pick(ID) :-
-    strategy(Source, Color, Amount, Stair, Chip),
+    strategy(ID,Source, Color, Amount, Stair, Chip),
+    print([Source,Color,Amount,Stair,Chip]),
     update_environment(Source, Color, Chip),
     place_chip(ID, Chip),
     place_colors(ID, Stair, Color, Amount).
@@ -96,16 +111,97 @@ clean_stair(ID, Stair, Color) :-
     Garbage is Stair-1,
     update_lid(Garbage, Color). 
 
+%Tells if from position (I,J) in the wall can be reached going through tiles the position (I,Goal)
+can_reach_horiz(_, _, Goal, Goal) :- !.
+can_reach_horiz(ID, I, J, Goal) :-
+    J<Goal, !,
+    Next is J+1,
+    cell(ID, I, Next, _, 1),
+    can_reach_horiz(ID, I, Next, Goal). 
+can_reach_horiz(ID, I, J, Goal) :-
+    J>Goal,
+    Next is J-1,
+    cell(ID, I, Next, _, 1),
+    can_reach_horiz(ID, I, Next, Goal).
+
+%Tells if from position (I,J) in the wall can be reached going through tiles the position (Goal,J)
+can_reach_vert(_, Goal, _, Goal) :- !.
+can_reach_vert(ID, I, J, Goal) :-
+    I<Goal, !,
+    Next is I+1,
+    cell(ID, Next, J, _, 1),
+    can_reach_vert(ID, Next, J, Goal). 
+can_reach_vert(ID, I, J, Goal) :-
+    I>Goal,
+    Next is I-1,
+    cell(ID, Next, J, _, 1),
+    can_reach_vert(ID, Next, J, Goal).
+
+%Calculate and leave in Amount the total adyacents in horizontal positions including position (I,J)
+calculate_points_horizontal(ID, I, J, Amount) :-
+    findall(1,
+            ( member(Goal, [1, 2, 3, 4, 5]),
+              can_reach_horiz(ID, I, J, Goal)
+            ),
+            Adyacents),
+    length(Adyacents, Amount).
+% ,player_score(ID,Current_Score),Score is Current_Score + L,set_score(ID,Score).
+
+%Calculate and leave in Amount the total adyacents in vertical positions including position (I,J)
+calculate_points_vertical(ID, I, J, Amount) :-
+    findall(1,
+            ( member(Goal, [1, 2, 3, 4, 5]),
+              can_reach_vert(ID, I, J, Goal)
+            ),
+            Adyacents),
+    length(Adyacents, Amount).
+    % player_score(ID, Current_Score),
+    % Score is Current_Score+L,
+    % set_score(ID, Score).
+
+%Update the score of player ID according to the amount of verticals and horizontals adyacents
+update_score(ID,1,1):- !,player_score(ID,Current_Score),Score is Current_Score + 1,set_score(ID,Score).
+update_score(ID,1,Verticals):-!,player_score(ID,Current_Score),Score is Current_Score + Verticals,set_score(ID,Score). 
+update_score(ID, Horizontals, 1) :-!,
+    player_score(ID, Current_Score),
+    Score is Current_Score+Horizontals,
+    set_score(ID, Score).
+update_score(ID,Horizontals,Verticals):- player_score(ID, Current_Score),
+    Score is Current_Score+Horizontals+Verticals,
+    set_score(ID, Score). 
+
+
 %Goes stair by stair, if stair is filled put one chip on the wall and clean the extra tiles on the stair
 build_and_clean(_, []) :- !.
 build_and_clean(ID, [(Stair, Color)|Stairs]) :-
-    set_value_wall(ID, Stair, _, Color, 1),
+    set_value_wall(ID, Stair, J, Color, 1),
+    calculate_points_horizontal(ID,Stair,J,Horizontals),
+    calculate_points_vertical(ID,Stair,J,Verticals),
+    update_score(ID,Horizontals,Verticals),
     clean_stair(ID, Stair, Color),
     build_and_clean(ID, Stairs).
+
+%Discount the respective penalty points for every tile in the floor
+floor_penalty(ID) :-
+    findall(P,
+            ( floor(ID, _, V, P),
+              V=\=0
+            ),
+            Penalties),
+    sum_list(Penalties, Sum),
+    player_score(ID, Current_Score),
+    Score is Current_Score+Sum,
+    set_score(ID, Score),
+    (   Score<0
+    ->  set_score(ID, 0)
+    ;   true
+    ).
+
 
 %Get the most left position of a stair that is colored ( means it is complete) and updates the wall and stairs
 build_wall(ID) :-
     setof((Stair, Color),
-          (stair(ID, Stair, Stair, Color), Color=\=0),
-          Stairs),
-    build_and_clean(ID, Stairs).
+          (stair(ID, Stair, Stair, Color), Color=\=0),Stairs),
+    build_and_clean(ID, Stairs),
+    floor_penalty(ID).
+
