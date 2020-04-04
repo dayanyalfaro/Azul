@@ -63,7 +63,7 @@ init_floor(ID) :-
     assert(floor(ID, 6, 0, -3)),
     assert(floor(ID, 7, 0, -3)).
 
-set_value_floor(ID, Pos, Value, Penalty) :-
+set_value_floor(ID, Pos, Value) :-
     retract(floor(ID, Pos, _, Penalty)),
     assert(floor(ID, Pos, Value, Penalty)).
 

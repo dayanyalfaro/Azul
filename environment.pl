@@ -222,34 +222,68 @@ remove_tiles_factory(ID, C, Cant) :-
     ).
 
 %------------------------Center of the Table-------------------------------------------------
-add_B_center() :-
+add_B_center(K) :-
     center(T1, B, Y, R, G, W),
-    B1 is B+1,
+    B1 is B+K,
     set_center(T1, B1, Y, R, G, W).
-add_Y_center() :-
+add_Y_center(K) :-
     center(T1, B, Y, R, G, W),
-    Y1 is Y+1,
+    Y1 is Y+K,
     set_center(T1, B, Y1, R, G, W).
-add_R_center() :-
+add_R_center(K) :-
     center(T1, B, Y, R, G, W),
-    R1 is R+1,
+    R1 is R+K,
     set_center(T1, B, Y, R1, G, W).
-add_G_center() :-
+add_G_center(K) :-
     center(T1, B, Y, R, G, W),
-    G1 is G+1,
+    G1 is G+K,
     set_center(T1, B, Y, R, G1, W).
-add_W_center():-  center(T1, B, Y, R, G, W), W1 is W + 1, set_center(T1, B, Y, R, G, W1).
+add_W_center(K) :-
+    center(T1, B, Y, R, G, W),
+    W1 is W+K,
+    set_center(T1, B, Y, R, G, W1).
 
-init_center():- set_center(1, 0, 0, 0, 0, 0).
+init_center() :-
+    set_center(1, 0, 0, 0, 0, 0).
 
-%add a tile of color C to the center
-add_tile_center(C):- ((C =:= 1, !) -> add_B_center(); true), ((C =:= 2, !) -> add_Y_center(); true), ((C =:= 3, !) -> add_R_center(); true), ((C =:= 4, !) -> add_G_center(); true), ((C =:= 5, !) -> add_W_center();  true).
+%add K tiles of color C to the center
+add_tile_center(C, K) :-
+    (   C=:=1, !
+    ->  add_B_center(K)
+    ;   true
+    ),
+    (   C=:=2, !
+    ->  add_Y_center(K)
+    ;   true
+    ),
+    (   C=:=3, !
+    ->  add_R_center(K)
+    ;   true
+    ),
+    (   C=:=4, !
+    ->  add_G_center(K)
+    ;   true
+    ),
+    (   C=:=5, !
+    ->  add_W_center(K)
+    ;   true
+    ).
 
-remove_B_center(B):-  center(T1, B, Y, R, G, W), set_center(T1, 0, Y, R, G, W).
-remove_Y_center(Y):-  center(T1, B, Y, R, G, W), set_center(T1, B, 0, R, G, W).
-remove_R_center(R):-  center(T1, B, Y, R, G, W), set_center(T1, B, Y, 0, G, W).
-remove_G_center(G):-  center(T1, B, Y, R, G, W), set_center(T1, B, Y, R, 0, W).
-remove_W_center(W):-  center(T1, B, Y, R, G, W), set_center(T1, B, Y, R, G, 0).
+remove_B_center(B) :-
+    center(T1, B, Y, R, G, W),
+    set_center(T1, 0, Y, R, G, W).
+remove_Y_center(Y) :-
+    center(T1, B, Y, R, G, W),
+    set_center(T1, B, 0, R, G, W).
+remove_R_center(R) :-
+    center(T1, B, Y, R, G, W),
+    set_center(T1, B, Y, 0, G, W).
+remove_G_center(G) :-
+    center(T1, B, Y, R, G, W),
+    set_center(T1, B, Y, R, 0, W).
+remove_W_center(W) :-
+    center(T1, B, Y, R, G, W),
+    set_center(T1, B, Y, R, G, 0).
 remove_chip_center():- center(1, B, Y, R, G, W),set_center(0, B, Y, R, G, W).
 %remove all tiles of color C from the center and return in Cant the number of this tiles eliminated
 remove_tiles_center(C, Cant):- ((C =:= 1, !) -> remove_B_center(Cant); true), ((C =:= 2, !) -> remove_Y_center(Cant); true), ((C =:= 3, !) -> remove_R_center(Cant); true), ((C =:= 4, !) -> remove_G_center(Cant); true), ((C =:= 5, !) -> remove_W_center(Cant);  true).
