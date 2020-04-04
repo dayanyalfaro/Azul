@@ -303,7 +303,7 @@ print_all_factory(ID):- print_factory(ID), write('    '), ID1 is ID - 1, print_a
 
 print_bag():- write('\n'), bag(S, B), printB('BAG->  Size: '), write(S), printB('  Tiles: '), write(B), write('\n').
 print_lid():- lid(N, L), printB('LID->  Size: '), write(N), printB('  Tiles: '), write(L), write('\n').
-print_center():- center(T, B, Y, R, G, W), printB('Center-> '), printB(B), printY(Y),  printR(R), printG(G), printW(W), ((T =:= 1) -> printW(' |1|')).
+print_center():- center(T, B, Y, R, G, W), printB('Center-> '), printB(B), printY(Y),  printR(R), printG(G), printW(W), ((T =:= 1) -> printW(' |1|');true).
 
 
 

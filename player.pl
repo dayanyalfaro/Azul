@@ -27,15 +27,15 @@ init_player(ID) :-
 %-----(Fase 1)----Player action: pick a movement and execute it 
 
 %Update center after player takes tiles
-update_environment(0,Color,Chip):- remove_tiles_center(Color,_),(Chip =:= 1 -> remove_chip_center();true).
+update_environment(0,Color,Chip):-!, remove_tiles_center(Color,_),(Chip =:= 1 -> remove_chip_center();true).
 %Move the rest of tiles to the table center after the player take the selected tiles 
 update_environment(Source, Color, _) :-
     remove_tiles_factory(Source, Color, _),
-    remove_tiles_factory(Source, 1, B),
-    remove_tiles_factory(Source, 2, Y),
-    remove_tiles_factory(Source, 3, R),
-    remove_tiles_factory(Source, 4, G),
-    remove_tiles_factory(Source, 5, W),
+    remove_B_factory(Source, B),
+    remove_Y_factory(Source, Y),
+    remove_R_factory(Source, R),
+    remove_G_factory(Source, G),
+    remove_W_factory(Source, W),
     add_tile_center(1, B),
     add_tile_center(2, Y),
     add_tile_center(3, R),
@@ -44,8 +44,9 @@ update_environment(Source, Color, _) :-
 
 
 %Place tile by tile on the lid
-update_lid(0, _) :- !.
+update_lid(Amount, _) :- Amount =< 0.
 update_lid(Amount, Color) :-
+    Amount > 0,
     add_tile_lid(Color),
     K is Amount-1,
     update_lid(K, Color).
@@ -66,7 +67,7 @@ update_floor(ID, [P|Unset], Color, Amount) :-
 
 %Place the extra tiles of the stair on the floor
 place_extras(_, _, Extra) :-
-    !,Extra=<0.
+    Extra=<0.
 place_extras(ID, Color, Extra) :-
     Extra>0,
     setof(P, Penalty^floor(ID, P, 0, Penalty), Unset),
@@ -96,6 +97,7 @@ place_colors(ID, Stair, Color, Amount) :-
 %Pick a movement and execute it 
 pick(ID) :-
     strategy(ID,Source, Color, Amount, Stair, Chip),
+    print([Source,Color,Amount,Stair,Chip]),
     update_environment(Source, Color, Chip),
     place_chip(ID, Chip),
     place_colors(ID, Stair, Color, Amount).
@@ -180,10 +182,20 @@ build_and_clean(ID, [(Stair, Color)|Stairs]) :-
     build_and_clean(ID, Stairs).
 
 %Discount the respective penalty points for every tile in the floor
-floor_penalty(ID):- findall(P,( floor(ID,_,V,P),V =\= 0),Penalties),sum_list(Penalties, Sum),player_score(ID, Current_Score),
+floor_penalty(ID) :-
+    findall(P,
+            ( floor(ID, _, V, P),
+              V=\=0
+            ),
+            Penalties),
+    sum_list(Penalties, Sum),
+    player_score(ID, Current_Score),
     Score is Current_Score+Sum,
-    ((Score < 0 -> Score is 0) ; true),
-    set_score(ID, Score).
+    set_score(ID, Score),
+    (   Score<0
+    ->  set_score(ID, 0)
+    ;   true
+    ).
 
 
 %Get the most left position of a stair that is colored ( means it is complete) and updates the wall and stairs
@@ -191,5 +203,5 @@ build_wall(ID) :-
     setof((Stair, Color),
           (stair(ID, Stair, Stair, Color), Color=\=0),Stairs),
     build_and_clean(ID, Stairs),
-floor_penalty(ID).
+    floor_penalty(ID).
 

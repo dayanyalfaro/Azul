@@ -203,7 +203,8 @@ select_move(R, [_|Moves], Source, Color, Amount, Stair, Chip) :-
 strategy(ID, Source, Color, Amount, Stair, Chip) :-
     get_moves(ID, All_moves),
     length(All_moves, L),
-    random(0, L, R),
+    N is L+1,
+    random(1, N, R),
     select_move(R,
                 All_moves,
                 Source,
