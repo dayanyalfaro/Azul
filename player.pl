@@ -22,6 +22,9 @@ init_player(ID) :-
     init_board(ID),
     set_penalty(ID, 0). 
 
+create_players(0):-!.
+create_players(Cant) :- init_player(Cant), Id is Cant - 1, create_players(Id). 
+
 %-----------------Player Actions---------------------------
 
 %-----(Fase 1)----Player action: pick a movement and execute it 
@@ -29,7 +32,7 @@ init_player(ID) :-
 %Update center after player takes tiles
 update_environment(0,Color,Chip):-!, remove_tiles_center(Color,_),(Chip =:= 1 -> remove_chip_center();true).
 %Move the rest of tiles to the table center after the player take the selected tiles 
-update_environment(Source, Color, _) :-
+update_environment(Source, Color, _) :-       %SEE inutilizacion
     remove_tiles_factory(Source, Color, _),
     remove_B_factory(Source, B),
     remove_Y_factory(Source, Y),
@@ -44,7 +47,7 @@ update_environment(Source, Color, _) :-
 
 
 %Place tile by tile on the lid
-update_lid(Amount, _) :- Amount =< 0.
+update_lid(Amount, _) :- Amount =< 0.  %SEE: debe haber un corte
 update_lid(Amount, Color) :-
     Amount > 0,
     add_tile_lid(Color),
@@ -54,10 +57,10 @@ update_lid(Amount, Color) :-
 %Put the fist player chip in the floor if it was taken 
 %TODO set player ID as first_player
 place_chip(_, 0) :- !.
-place_chip(ID, 1) :-
+place_chip(ID, 1) :- set_first_player(ID), write('\n Player: '), write(ID), write('takes the initial tile from the center\n'),
     place_extras(ID, -1, 1).
 
-%Put a total of Amount tiles of color Color,tile by tile,on the floor   
+%Put a total of Amount tiles of color Color,tile by tile,on the floor   SEE: que se hace con los tiles q no quepan en el floor
 update_floor(_, _, _, 0) :- !. 
 update_floor(_, [], _, _) :- !. 
 update_floor(ID, [P|Unset], Color, Amount) :-
@@ -67,7 +70,7 @@ update_floor(ID, [P|Unset], Color, Amount) :-
 
 %Place the extra tiles of the stair on the floor
 place_extras(_, _, Extra) :-
-    Extra=<0.
+    Extra=<0, !.                        %SEE: CORTE AQUI
 place_extras(ID, Color, Extra) :-
     Extra>0,
     setof(P, Penalty^floor(ID, P, 0, Penalty), Unset),
@@ -77,7 +80,7 @@ place_extras(ID, Color, Extra) :-
     update_lid(Garbage, Color).
 
 %Place color tiles one by one on a stair
-update_stair(_, _, _, _, 0) :- !.
+update_stair(_, _, _, _, 0) :- !.        %sSEE cuantos sobran para el floor
 update_stair(_, _, [], _, _) :- !.
 update_stair(ID, Stair, [P|Unset], Color, Amount) :-
     set_value_stair(ID, Stair, P, Color),
@@ -97,10 +100,18 @@ place_colors(ID, Stair, Color, Amount) :-
 %Pick a movement and execute it 
 pick(ID) :-
     strategy(ID,Source, Color, Amount, Stair, Chip),
+    print("strategy done "),
+    print(ID),
     print([Source,Color,Amount,Stair,Chip]),
+
     update_environment(Source, Color, Chip),
+    print("update enviroment done"),
     place_chip(ID, Chip),
-    place_colors(ID, Stair, Color, Amount).
+    print("place chip done"),
+    place_colors(ID, Stair, Color, Amount),
+    print("place color done\n").
+
+
 
 %-----(Fase 2)----Player action: build the wall
 
@@ -204,4 +215,19 @@ build_wall(ID) :-
           (stair(ID, Stair, Stair, Color), Color=\=0),Stairs),
     build_and_clean(ID, Stairs),
     floor_penalty(ID).
+
+
+update_all_walls(0):- !.
+update_all_walls(Cant):- build_wall(Cant), ID is Cant - 1, update_all_walls(ID).
+
+
+
+%Check if a line Row in the wall has L tiles completed.
+check_line(ID, Row,  L):- findall(_, cell(ID, Row, _, _, 1), T), length(T, L ). 
+
+%Check if the number of completed lines in the wall is > 0
+check_stop_player(ID) :- findall(_, check_line(ID, _, 5), T), length(T, L), L > 0.
+
+check_stop(ID) :- cant_players(Cant), ID =< Cant, check_stop_player(ID), !.
+check_stop(ID) :- cant_players(Cant), ID =< Cant, ID1 is ID+1 , check_stop(ID1).
 

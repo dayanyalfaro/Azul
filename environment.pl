@@ -1,11 +1,23 @@
 :- consult(matrix).
 :- consult(utils).
 
-:- dynamic(cant_players/1, cant_factory/1, factory/6, center/6, bag/2, lid/2).
+:- dynamic(cant_players/1, first_player/1, next_turn/1, stop_play/1, cant_factory/1, factory/6, center/6, bag/2, lid/2).
 
 %------------------------Play ATTR----------------------------------------
 set_cant_players(Cant) :-
     assert(cant_players(Cant)). 
+
+set_first_player(ID) :- (retract(first_player(_)), ! ; true), assert(first_player(ID)).
+
+set_next_turn(Next):- (retract(next_turn(_)), ! ; true),  assert(next_turn(Next)).
+
+plus_one(X, 1) :- cant_players(C), X =:= C, !. 
+plus_one(X, Y) :- Y is X + 1.
+
+update_next_turn() :- next_turn(Actual),  plus_one(Actual, Next) , set_next_turn(Next).
+
+set_stop_play(Bool):-  (retract(stop_play(_)), ! ; true),  assert(stop_play(Bool)).
+
 set_cant_factory(Cant) :-
     (   retract(cant_factory(_)), !
     ;   true
@@ -221,6 +233,13 @@ remove_tiles_factory(ID, C, Cant) :-
     ;   true
     ).
 
+empty_factory(ID):- factory(ID, B, Y, R, G, W), B =:= 0, Y =:= 0, R =:= 0, G =:= 0, W =:= 0. 
+
+empty_all_factory():-  findall(ID, empty_factory(ID), L), cant_factory(Cant), length(L, Cant).
+
+
+
+
 %------------------------Center of the Table-------------------------------------------------
 add_B_center(K) :-
     center(T1, B, Y, R, G, W),
@@ -288,11 +307,24 @@ remove_chip_center():- center(1, B, Y, R, G, W),set_center(0, B, Y, R, G, W).
 %remove all tiles of color C from the center and return in Cant the number of this tiles eliminated
 remove_tiles_center(C, Cant):- ((C =:= 1, !) -> remove_B_center(Cant); true), ((C =:= 2, !) -> remove_Y_center(Cant); true), ((C =:= 3, !) -> remove_R_center(Cant); true), ((C =:= 4, !) -> remove_G_center(Cant); true), ((C =:= 5, !) -> remove_W_center(Cant);  true).
 
+empty_center():- center(_, B, Y, R, G, W), B =:= 0, Y =:= 0, R =:= 0, G =:= 0, W =:= 0. 
 
 
 %------------------------Play Initialization-------------------------------------------------
 
-init_play(CantPlayers):- set_cant_players(CantPlayers), init_bag(), init_lid(), init_all_factorys(), init_center().
+init_play(CantPlayers):- set_cant_players(CantPlayers), set_first_player(1), set_next_turn(1), init_bag(), init_lid(), init_all_factorys(), init_center().
+
+%------------------------FASES Play-----------------------------------------------------------
+
+%Check if all factorys and the center is empty(End FASE 1)
+finish_fase1() :- empty_all_factory(), empty_center().
+
+%SEE condition to stop
+
+prepare_next_round():-fill_bag(), bag(Cant, _), Cant =\= 0, init_all_factorys(), init_center(), first_player(P), set_next_turn(P).
+
+
+
 
 %------------------------Print PLay State------------------------------------------------------
 

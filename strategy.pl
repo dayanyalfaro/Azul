@@ -8,7 +8,7 @@
 % 5 - White
 
 %Get all factible movements involving one color in factories---------------------------
-moves_B(1, Blues) :-
+moves_B(ID, Blues) :-
     findall((Source, 1, Amount, Stair, 0),
             ( factory(Source,
                       Amount,
@@ -18,7 +18,7 @@ moves_B(1, Blues) :-
                       _),
               Amount=\=0,
               member(Stair, [0, 1, 2, 3, 4, 5]),
-              factible_move(1, 1, Stair)
+              factible_move(ID, 1, Stair)
             ),
             Blues).
 
@@ -162,7 +162,7 @@ get_moves(ID, All_moves) :-
     moves_center_Y(ID, Center_Yellows),
     moves_center_R(ID, Center_Reds),
     moves_center_G(ID, Center_Greens),
-    moves_center_W(ID, Center_Whites),
+    moves_center_W(ID, Center_Whites), 
     append(
            [ Blues,
              Yellows,
@@ -175,8 +175,8 @@ get_moves(ID, All_moves) :-
              Center_Greens,
              Center_Whites
            ],
-           All_moves),
-    print(All_moves).
+           All_moves).
+    % print(All_moves).
 
 %Determine if is possible to place Color at Stair in the board of the player ID
 factible_move(_, _, 0).  %Move to floor is always factible

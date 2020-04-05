@@ -1,3 +1,4 @@
+:- consult(utils).
 :- dynamic(cell/5, stair/4, floor/4).
 
 
@@ -74,6 +75,8 @@ init_board(ID) :-
 
  %---------------------Print Board----------------------------
  % Print the wall cells
+print_cell(0, 1):- !, ansi_format([bold, fg(black)], '(_) ', []).  %is empty the floor cell
+print_cell(-1, 1):- !,  ansi_format([bold, fg(white)], '(1) ', []). %is chip 1 in the floor cell
 print_cell(1, 0) :- !,
     ansi_format([bold, fg(blue)], '(_) ', []).
 print_cell(1, 1) :- !,
@@ -232,6 +235,11 @@ print_board_row(ID, 4) :- !,
     write('| \n').
 print_board_row(ID, 5):- print_stair_row(ID, 5), print_wall_row(ID, 5), write('| \n').
 
-print_line():- write('-----------------------------------------------\n').
+print_floor_row(ID):- write('|'), floor(ID, 1, C1, _), floor(ID, 2, C2, _), floor(ID, 3, C3, _),floor(ID, 4, C4, _),floor(ID, 5, C5, _), floor(ID, 6, C6, _),floor(ID, 7, C7, _), print_cell(C1, 1), print_cell(C2, 1), print_cell(C3, 1), print_cell(C4, 1), print_cell(C5, 1), print_cell(C6, 1),  print_cell(C7, 1), write('                 |\n').
+print_floor(ID):- !,  write('|-1  -1  -2  -2  -2  -3  -3                   |\n'), print_floor_row(ID).
 
-print_board(ID):- print_line(), print_board_row(ID, 1), print_board_row(ID, 2), print_board_row(ID, 3), print_board_row(ID, 4), print_board_row(ID, 5), print_line().
+print_line():-  write('-----------------------------------------------\n').
+
+
+
+print_board(ID):- !,printB('\n Player:'), printB(ID), write('\n'), print_line(), print_board_row(ID, 1), print_board_row(ID, 2), print_board_row(ID, 3), print_board_row(ID, 4), print_board_row(ID, 5), print_floor(ID), print_line().
