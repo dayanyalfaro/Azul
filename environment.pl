@@ -319,9 +319,12 @@ init_play(CantPlayers):- set_cant_players(CantPlayers), set_first_player(1), set
 %Check if all factorys and the center is empty(End FASE 1)
 finish_fase1() :- empty_all_factory(), empty_center().
 
-%SEE condition to stop
+init_all_floor(1) :- init_floor(1), ! . 
+init_all_floor(Cant) :- init_floor(Cant), Id is Cant - 1, init_all_floor(Id).
 
-prepare_next_round():-fill_bag(), bag(Cant, _), Cant =\= 0, init_all_factorys(), init_center(), first_player(P), set_next_turn(P).
+restart_all_floor() :- retractall(floor), cant_players(Cant), init_all_floor(Cant).
+
+prepare_next_round():-fill_bag(), bag(Cant, _), Cant =\= 0, init_all_factorys(), init_center(), first_player(P), set_next_turn(P), restart_all_floor().
 
 
 
@@ -337,6 +340,7 @@ print_bag():- write('\n'), bag(S, B), printB('BAG->  Size: '), write(S), printB(
 print_lid():- lid(N, L), printB('LID->  Size: '), write(N), printB('  Tiles: '), write(L), write('\n').
 print_center():- center(T, B, Y, R, G, W), printB('Center-> '), printB(B), printY(Y),  printR(R), printG(G), printW(W), ((T =:= 1) -> printW(' |1|');true).
 
+print_all_boards(1):- print_board(1), !.
+print_all_boards(Cant):- print_board(Cant), ID is Cant - 1, print_all_boards(ID).
 
-
-print_play_state():- cant_factory(F), print_all_factory(F), print_center(), print_bag(), print_lid().
+print_play_state():- cant_factory(F), print_all_factory(F), print_center(), print_bag(), print_lid(), cant_players(C),  print_all_boards(C).

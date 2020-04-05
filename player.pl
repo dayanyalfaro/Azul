@@ -74,7 +74,7 @@ place_extras(_, _, Extra) :-
     Extra=<0, !.                        %SEE: CORTE AQUI
 place_extras(ID, Color, Extra) :-
     Extra>0,
-    setof(P, Penalty^floor(ID, P, 0, Penalty), Unset),
+    findall(P, floor(ID, P, 0, Penalty), Unset),
     update_floor(ID, Unset, Color, Extra),
     length(Unset, L),
     Garbage is Extra-L,
@@ -106,11 +106,11 @@ pick(ID) :-
     print([Source,Color,Amount,Stair,Chip]),
 
     update_environment(Source, Color, Chip),
-    print("update enviroment done"),
+   
     place_chip(ID, Chip),
-    print("place chip done"),
-    place_colors(ID, Stair, Color, Amount),
-    print("place color done\n").
+   
+    place_colors(ID, Stair, Color, Amount).
+
 
 
 
@@ -180,8 +180,11 @@ update_all_walls(Cant):- build_wall(Cant), ID is Cant - 1, update_all_walls(ID).
 %Check if a line Row in the wall has L tiles completed.
 check_line(ID, Row,  L):- findall(_, cell(ID, Row, _, _, 1), T), length(T, L ). 
 
+check_all_lines(ID, Row) :-  Row =< 5, check_line(ID, Row, 5).
+check_all_lines(ID, Row) :-  Row =< 5, R2 is Row + 1, check_all_lines(ID, R2).
+
 %Check if the number of completed lines in the wall is > 0
-check_stop_player(ID) :- findall(_, check_line(ID, _, 5), T), length(T, L), L > 0.
+check_stop_player(ID) :- check_all_lines(ID, 1).
 
 check_stop(ID) :- cant_players(Cant), ID =< Cant, check_stop_player(ID), !.
 check_stop(ID) :- cant_players(Cant), ID =< Cant, ID1 is ID+1 , check_stop(ID1).
