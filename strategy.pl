@@ -165,7 +165,7 @@ get_moves(ID, All_moves) :-
     moves_center_Y(ID, Center_Yellows),
     moves_center_R(ID, Center_Reds),
     moves_center_G(ID, Center_Greens),
-    moves_center_W(ID, Center_Whites), 
+    moves_center_W(ID, Center_Whites),
     append(
            [ Blues,
              Yellows,
@@ -217,8 +217,6 @@ random_strategy(_, All_moves, Source, Color, Amount, Stair, Chip) :-
 
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-%not(is_game_move);is_winning(ID)
 is_winning(Player) :-
     setof((Score, ID), player_score(ID, Score), Scores),
     last(Scores,  (_, Player)).

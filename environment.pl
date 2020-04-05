@@ -1,22 +1,48 @@
 :- consult(matrix).
 :- consult(utils).
 
-:- dynamic(cant_players/1, first_player/1, next_turn/1, stop_play/1, cant_factory/1, factory/6, center/6, bag/2, lid/2).
+:- dynamic(cant_players/1,
+           first_player/1,
+           next_turn/1,
+           stop_play/1,
+           cant_factory/1,
+           factory/6,
+           center/6,
+           bag/2,
+           lid/2).
 
 %------------------------Play ATTR----------------------------------------
 set_cant_players(Cant) :-
     assert(cant_players(Cant)). 
 
-set_first_player(ID) :- (retract(first_player(_)), ! ; true), assert(first_player(ID)).
+set_first_player(ID) :-
+    (   retract(first_player(_)), !
+    ;   true
+    ),
+    assert(first_player(ID)).
 
-set_next_turn(Next):- (retract(next_turn(_)), ! ; true),  assert(next_turn(Next)).
+set_next_turn(Next) :-
+    (   retract(next_turn(_)), !
+    ;   true
+    ),
+    assert(next_turn(Next)).
 
-plus_one(X, 1) :- cant_players(C), X =:= C, !. 
-plus_one(X, Y) :- Y is X + 1.
+plus_one(X, 1) :-
+    cant_players(C),
+    X=:=C, !. 
+plus_one(X, Y) :-
+    Y is X+1.
 
-update_next_turn() :- next_turn(Actual),  plus_one(Actual, Next) , set_next_turn(Next).
+update_next_turn() :-
+    next_turn(Actual),
+    plus_one(Actual, Next),
+    set_next_turn(Next).
 
-set_stop_play(Bool):-  (retract(stop_play(_)), ! ; true),  assert(stop_play(Bool)).
+set_stop_play(Bool) :-
+    (   retract(stop_play(_)), !
+    ;   true
+    ),
+    assert(stop_play(Bool)).
 
 set_cant_factory(Cant) :-
     (   retract(cant_factory(_)), !
@@ -233,9 +259,18 @@ remove_tiles_factory(ID, C, Cant) :-
     ;   true
     ).
 
-empty_factory(ID):- factory(ID, B, Y, R, G, W), B =:= 0, Y =:= 0, R =:= 0, G =:= 0, W =:= 0. 
+empty_factory(ID) :-
+    factory(ID, B, Y, R, G, W),
+    B=:=0,
+    Y=:=0,
+    R=:=0,
+    G=:=0,
+    W=:=0. 
 
-empty_all_factory():-  findall(ID, empty_factory(ID), L), cant_factory(Cant), length(L, Cant).
+empty_all_factory() :-
+    findall(ID, empty_factory(ID), L),
+    cant_factory(Cant),
+    length(L, Cant).
 
 
 
@@ -303,7 +338,9 @@ remove_G_center(G) :-
 remove_W_center(W) :-
     center(T1, B, Y, R, G, W),
     set_center(T1, B, Y, R, G, 0).
-remove_chip_center():- center(1, B, Y, R, G, W),set_center(0, B, Y, R, G, W).
+remove_chip_center() :-
+    center(1, B, Y, R, G, W),
+    set_center(0, B, Y, R, G, W).
 %remove all tiles of color C from the center and return in Cant the number of this tiles eliminated
 remove_tiles_center(C, Cant):- ((C =:= 1, !) -> remove_B_center(Cant); true), ((C =:= 2, !) -> remove_Y_center(Cant); true), ((C =:= 3, !) -> remove_R_center(Cant); true), ((C =:= 4, !) -> remove_G_center(Cant); true), ((C =:= 5, !) -> remove_W_center(Cant);  true).
 
@@ -319,9 +356,12 @@ init_play(CantPlayers):- set_cant_players(CantPlayers), set_first_player(1), set
 %Check if all factorys and the center is empty(End FASE 1)
 finish_fase1() :- empty_all_factory(), empty_center().
 
-%SEE condition to stop
+init_all_floor(1) :- init_floor(1), ! . 
+init_all_floor(Cant) :- init_floor(Cant), Id is Cant - 1, init_all_floor(Id).
 
-prepare_next_round():-fill_bag(), bag(Cant, _), Cant =\= 0, init_all_factorys(), init_center(), first_player(P), set_next_turn(P).
+restart_all_floor() :- retractall(floor(_,_,_,_)), cant_players(Cant), init_all_floor(Cant).
+
+prepare_next_round():-fill_bag(), bag(Cant, _), Cant =\= 0, init_all_factorys(), init_center(), first_player(P), set_next_turn(P), restart_all_floor().
 
 
 
@@ -337,6 +377,7 @@ print_bag():- write('\n'), bag(S, B), printB('BAG->  Size: '), write(S), printB(
 print_lid():- lid(N, L), printB('LID->  Size: '), write(N), printB('  Tiles: '), write(L), write('\n').
 print_center():- center(T, B, Y, R, G, W), printB('Center-> '), printB(B), printY(Y),  printR(R), printG(G), printW(W), ((T =:= 1) -> printW(' |1|');true).
 
+print_all_boards(1):- print_board(1), !.
+print_all_boards(Cant):- print_board(Cant), ID is Cant - 1, print_all_boards(ID).
 
-
-print_play_state():- cant_factory(F), print_all_factory(F), print_center(), print_bag(), print_lid().
+print_play_state():- cant_factory(F), print_all_factory(F), print_center(), print_bag(), print_lid(), cant_players(C),  print_all_boards(C).

@@ -61,7 +61,7 @@ place_chip(_, 0) :- !.
 place_chip(ID, 1) :- set_first_player(ID), write('\n Player: '), write(ID), write('takes the initial tile from the center\n'),
     place_extras(ID, -1, 1).
 
-%Put a total of Amount tiles of color Color,tile by tile,on the floor   SEE: que se hace con los tiles q no quepan en el floor
+%Put a total of Amount tiles of color Color,tile by tile,on the floor  
 update_floor(_, _, _, 0) :- !. 
 update_floor(_, [], _, _) :- !. 
 update_floor(ID, [P|Unset], Color, Amount) :-
@@ -72,16 +72,18 @@ update_floor(ID, [P|Unset], Color, Amount) :-
 %Place the extra tiles of the stair on the floor
 place_extras(_, _, Extra) :-
     Extra=<0, !.                        %SEE: CORTE AQUI
-place_extras(ID, Color, Extra) :-
+place_extras(_, Color, Extra) :- %Poner ID
     Extra>0,
-    setof(P, Penalty^floor(ID, P, 0, Penalty), Unset),
-    update_floor(ID, Unset, Color, Extra),
-    length(Unset, L),
-    Garbage is Extra-L,
-    update_lid(Garbage, Color).
+    % findall(P, floor(ID, P, 0, _), Unset),
+    % update_floor(ID, Unset, Color, Extra),
+    % length(Unset, L),
+    % Garbage is Extra-L,
+    % update_lid(Garbage, Color).
+    update_lid(Extra,Color ).
+
 
 %Place color tiles one by one on a stair
-update_stair(_, _, _, _, 0) :- !.        %sSEE cuantos sobran para el floor
+update_stair(_, _, _, _, 0) :- !.     
 update_stair(_, _, [], _, _) :- !.
 update_stair(ID, Stair, [P|Unset], Color, Amount) :-
     set_value_stair(ID, Stair, P, Color),
@@ -100,17 +102,24 @@ place_colors(ID, Stair, Color, Amount) :-
 
 %Pick a movement and execute it 
 pick(ID) :-
-    get_moves(ID,All_moves),
-    strategy(ID,All_moves,Source, Color, Amount, Stair, Chip),
-    (not(is_game_move(ID,Stair,Color)); assert(ending_move(ID))),
-    print([Source,Color,Amount,Stair,Chip]),
+    get_moves(ID, All_moves),
+    random_strategy(ID,
+             All_moves,
+             Source,
+             Color,
+             Amount,
+             Stair,
+             Chip),
+    % (   not(is_game_move(ID, Stair, Color)); assert(ending_move(ID))
+    % ),
+    print([Source, Color, Amount, Stair, Chip]),
 
     update_environment(Source, Color, Chip),
-    print("update enviroment done"),
+   
     place_chip(ID, Chip),
-    print("place chip done"),
-    place_colors(ID, Stair, Color, Amount),
-    print("place color done\n").
+   
+    place_colors(ID, Stair, Color, Amount).
+
 
 
 
@@ -180,8 +189,11 @@ update_all_walls(Cant):- build_wall(Cant), ID is Cant - 1, update_all_walls(ID).
 %Check if a line Row in the wall has L tiles completed.
 check_line(ID, Row,  L):- findall(_, cell(ID, Row, _, _, 1), T), length(T, L ). 
 
+check_all_lines(ID, Row) :-  Row =< 5, check_line(ID, Row, 5).
+check_all_lines(ID, Row) :-  Row =< 5, R2 is Row + 1, check_all_lines(ID, R2).
+
 %Check if the number of completed lines in the wall is > 0
-check_stop_player(ID) :- findall(_, check_line(ID, _, 5), T), length(T, L), L > 0.
+check_stop_player(ID) :- check_all_lines(ID, 1).
 
 check_stop(ID) :- cant_players(Cant), ID =< Cant, check_stop_player(ID), !.
 check_stop(ID) :- cant_players(Cant), ID =< Cant, ID1 is ID+1 , check_stop(ID1).

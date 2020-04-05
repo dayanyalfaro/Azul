@@ -14,14 +14,14 @@ update_all_scores():- write("i am updating score success").
 init_round():- first_player(F), set_next_turn(F), fase1(_).
 
 
-fase1(2):- finish_fase1(), !.
-fase1(1) :- next_turn(Next), print_play_state(),  pick(Next), print_board(Next), update_next_turn(), !.
+fase1(2):- finish_fase1(), !, print_play_state().
+fase1(1) :- next_turn(Next), pick(Next), update_next_turn(), print_play_state(),  !.
 fase1(6).
 
 fase2(3):- !, cant_players(Cant), update_all_walls(Cant), !. 
 fase2(5).
 
-fase3(4) :- check_end_play(), ! , update_all_scores(). 
+fase3(4) :- check_end_play(), ! , print_play_state(),  write('\n****************END GAME*******************\n') , update_all_scores(). 
 fase3(1) :- prepare_next_round(), !.                    %next round puede finalizar el juego
 fase3(7) :- !.
 
