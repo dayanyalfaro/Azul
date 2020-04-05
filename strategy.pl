@@ -1,4 +1,5 @@
 :- consult(environment).
+:- consult(punctuation).
 
 %Color Definition
 % 1 - Blue
@@ -200,7 +201,7 @@ select_move(R, [_|Moves], Source, Color, Amount, Stair, Chip) :-
                 Chip). 
 
 
-strategy(ID, Source, Color, Amount, Stair, Chip) :-
+random_strategy(ID, Source, Color, Amount, Stair, Chip) :-
     get_moves(ID, All_moves),
     length(All_moves, L),
     N is L+1,
@@ -212,3 +213,85 @@ strategy(ID, Source, Color, Amount, Stair, Chip) :-
                 Amount,
                 Stair,
                 Chip).
+
+
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+%Free is the amount of free space in Stair of player ID
+get_free_space(ID, Stair, Free) :-
+    findall(1,
+            ( stair(ID, Stair, _, V),
+              V=:=0
+            ),
+            Available),
+    length(Available, Free).
+
+get_adyacents(ID, I, C, Adyacents) :-
+    calculate_points_horizontal(ID, I, C, H),
+    calculate_points_vertical(ID, I, C, V),
+    Adyacents is H+V. 
+
+%Leaves in Moves a list sorted by adyacency in the wall that contains the moves that fill a stair with K extra tiles
+get_moves_overfill(ID, K, Moves) :-
+    get_moves(ID, All_moves),
+    setof((Ady, Src, Clr, Amnt, St, Ch),
+          Free^(member((Src, Clr, Amnt, St, Ch), All_moves), get_free_space(ID, St, Free), Amnt-Free=:=K, get_adyacents(ID, St, Clr, Ady)),
+          Moves).
+
+%Leaves in Moves a list of moves that dont fill a stair sorted by incomplete space in the stair 
+get_moves_incomplete(ID, Moves) :-
+    get_moves(ID, All_moves),
+    setof((Incomplete, Src, Clr, Amnt, St, Ch),
+          Free^(member((Src, Clr, Amnt, St, Ch), All_moves), get_free_space(ID, St, Free), Incomplete is Free-Amnt, Incomplete>0),
+          Moves).
+
+%Leaves in Moves a list of moves that dont fill a stair that already have some tiles on it sorted by incomplete space in the stair 
+get_moves_incomplete_to_nonempty(ID, Moves) :-
+    get_moves(ID, All_moves),
+    setof((Incomplete, Src, Clr, Amnt, St, Ch),
+          Free^(member((Src, Clr, Amnt, St, Ch), All_moves), get_free_space(ID, St, Free), Incomplete is Free-Amnt, Incomplete>0, stair(ID, St, 1, Clr)),
+          Moves).
+
+strategy(ID, Source, Color, Amount, Stair, Chip) :-
+    get_moves_overfill(ID, 0, Moves),
+    last(Moves,
+         (_, Source, Color, Amount, Stair, Chip)), !.
+strategy(ID, Source, Color, Amount, Stair, Chip) :-
+    get_moves_overfill(ID, 1, Moves),
+    last(Moves,
+         (_, Source, Color, Amount, Stair, Chip)), !.
+strategy(ID, Source, Color, Amount, Stair, Chip) :-
+    get_moves_overfill(ID, 2, Moves),
+    last(Moves,
+         (_, Source, Color, Amount, Stair, Chip)), !.
+strategy(ID, Source, Color, Amount, Stair, Chip) :-
+    get_moves_incomplete_to_nonempty(ID,
+                                     
+                                     [ (_, Source, Color, Amount, Stair, Chip)
+                                     | _
+                                     ]), !.
+strategy(ID, Source, Color, Amount, Stair, Chip) :-
+    get_moves_incomplete(ID,
+                         
+                         [ (_, Source, Color, Amount, Stair, Chip)
+                         | _
+                         ]), !.
+strategy(ID, Source, Color, Amount, Stair, Chip) :-
+    get_moves(ID, All_moves),
+    setof((Amnt, Src, Clr, Amnt, St, Ch),
+          member((Src, Clr, Amnt, St, Ch),
+                 All_moves),
+          
+          [ (_, Source, Color, Amount, Stair, Chip)
+          | _
+          ]), !.
+strategy(ID, Source, Color, Amount, Stair, Chip) :-
+    random_strategy(ID,
+                    Source,
+                    Color,
+                    Amount,
+                    Stair,
+                    Chip).
