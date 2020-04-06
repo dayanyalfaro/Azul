@@ -20,3 +20,26 @@
 11-remove_tiles_center(C, Cant) elimina del centro todos los tiles de color C y te deja en Cant cuantos fueron
 
 Para ejecutar el environment haces init_play(CantPlayers).
+
+----strategy.pl
+
+Asumiendo que tengo un conjunto de movimientos factibles:
+1- Buscar todos aquellos movimientos que completen una fila: escojo el que va a tener mayor numero de adyacencias en el wall, chequeo (*)
+(*) Siempre antes de escoger uno tengo que analizar si con hacer ese se termina el juego -> Si -> Estoy ganando -> Si -> Lo escojo
+                                                                                                                   No -> Alguien mas va a acabar el juego -> Si -> Lo escojo
+                                                                                                                                                             No -> No lo escojo y sigo buscando
+                                                                                            No-> Lo escojo
+
+2-Buscar los que se pasen en 1 : escojo el que va a tener mayor numero de adyacencias en el wall, chequeo (*)
+                                                     
+3-Buscar los que se pasen en 2 :  escojo el que va a tener mayor numero de adyacencias en el wall, chequeo (*)
+                                 
+4-Buscar de los que no completan aquellos q van para una fila incompleta(q ya tiene alguna ficha puesta): escojo el que menos espacio vacio deja
+
+5-Buscar de los que no completan aquellos q dejan menos espacio libre: escojo el que menos espacio vacio deja
+
+6-Escoger el que menos fichas mande para el suelo y no termine el juego (creo q si se llega a este punto es pq las opciones que hay para poner se pasan en una cant > 2 o no es factible colocar en las escaleras por lo tanto se quiere minimizar la cant de fichas que van a ir al suelo, tambien estan las opciones que descarte por (*) por eso las vuelvo a descartar aqui)
+
+7-Escoger el que menos fichas mande para el suelo(Si llegue a este punto es pq todas las opciones terminan el juego y puede que mandan fichas al suelo asi que entonces minimizo esta cantidad y termino el juego)  
+                                           
+

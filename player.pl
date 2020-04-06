@@ -1,8 +1,9 @@
 :- consult(matrix).
 :- consult(environment).
 :- consult(strategy).
+:- consult(punctuation).
 
-:- dynamic(player_score/2, player_wall/2, player_stair/2, player_penalty/2).
+:- dynamic(player_wall/2, player_stair/2, player_penalty/2).
 
 %-----------------Player ATTR----------------------------
 set_score(ID, SCORE) :-
@@ -26,9 +27,9 @@ init_player(ID) :-
 
 %-----(Fase 1)----Player action: pick a movement and execute it 
 
-%Update center after player takes tiles
+%Update center after player takes tiles from it
 update_environment(0,Color,Chip):-!, remove_tiles_center(Color,_),(Chip =:= 1 -> remove_chip_center();true).
-%Move the rest of tiles to the table center after the player take the selected tiles 
+%Move the rest of tiles to the table center after the player take the selected tiles from factory Source
 update_environment(Source, Color, _) :-
     remove_tiles_factory(Source, Color, _),
     remove_B_factory(Source, B),
@@ -96,7 +97,9 @@ place_colors(ID, Stair, Color, Amount) :-
 
 %Pick a movement and execute it 
 pick(ID) :-
-    strategy(ID,Source, Color, Amount, Stair, Chip),
+    get_moves(ID,All_moves),
+    strategy(ID,All_moves,Source, Color, Amount, Stair, Chip),
+    (not(is_game_move(ID,Stair,Color)); assert(ending_move(ID))),
     print([Source,Color,Amount,Stair,Chip]),
     update_environment(Source, Color, Chip),
     place_chip(ID, Chip),
@@ -111,53 +114,7 @@ clean_stair(ID, Stair, Color) :-
     Garbage is Stair-1,
     update_lid(Garbage, Color). 
 
-%Tells if from position (I,J) in the wall can be reached going through tiles the position (I,Goal)
-can_reach_horiz(_, _, Goal, Goal) :- !.
-can_reach_horiz(ID, I, J, Goal) :-
-    J<Goal, !,
-    Next is J+1,
-    cell(ID, I, Next, _, 1),
-    can_reach_horiz(ID, I, Next, Goal). 
-can_reach_horiz(ID, I, J, Goal) :-
-    J>Goal,
-    Next is J-1,
-    cell(ID, I, Next, _, 1),
-    can_reach_horiz(ID, I, Next, Goal).
 
-%Tells if from position (I,J) in the wall can be reached going through tiles the position (Goal,J)
-can_reach_vert(_, Goal, _, Goal) :- !.
-can_reach_vert(ID, I, J, Goal) :-
-    I<Goal, !,
-    Next is I+1,
-    cell(ID, Next, J, _, 1),
-    can_reach_vert(ID, Next, J, Goal). 
-can_reach_vert(ID, I, J, Goal) :-
-    I>Goal,
-    Next is I-1,
-    cell(ID, Next, J, _, 1),
-    can_reach_vert(ID, Next, J, Goal).
-
-%Calculate and leave in Amount the total adyacents in horizontal positions including position (I,J)
-calculate_points_horizontal(ID, I, J, Amount) :-
-    findall(1,
-            ( member(Goal, [1, 2, 3, 4, 5]),
-              can_reach_horiz(ID, I, J, Goal)
-            ),
-            Adyacents),
-    length(Adyacents, Amount).
-% ,player_score(ID,Current_Score),Score is Current_Score + L,set_score(ID,Score).
-
-%Calculate and leave in Amount the total adyacents in vertical positions including position (I,J)
-calculate_points_vertical(ID, I, J, Amount) :-
-    findall(1,
-            ( member(Goal, [1, 2, 3, 4, 5]),
-              can_reach_vert(ID, I, J, Goal)
-            ),
-            Adyacents),
-    length(Adyacents, Amount).
-    % player_score(ID, Current_Score),
-    % Score is Current_Score+L,
-    % set_score(ID, Score).
 
 %Update the score of player ID according to the amount of verticals and horizontals adyacents
 update_score(ID,1,1):- !,player_score(ID,Current_Score),Score is Current_Score + 1,set_score(ID,Score).
@@ -174,9 +131,9 @@ update_score(ID,Horizontals,Verticals):- player_score(ID, Current_Score),
 %Goes stair by stair, if stair is filled put one chip on the wall and clean the extra tiles on the stair
 build_and_clean(_, []) :- !.
 build_and_clean(ID, [(Stair, Color)|Stairs]) :-
-    set_value_wall(ID, Stair, J, Color, 1),
-    calculate_points_horizontal(ID,Stair,J,Horizontals),
-    calculate_points_vertical(ID,Stair,J,Verticals),
+    set_value_wall(ID, Stair, _, Color, 1),
+    calculate_points_horizontal(ID,Stair,Color,Horizontals),
+    calculate_points_vertical(ID,Stair,Color,Verticals),
     update_score(ID,Horizontals,Verticals),
     clean_stair(ID, Stair, Color),
     build_and_clean(ID, Stairs).
