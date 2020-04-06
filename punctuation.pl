@@ -1,5 +1,7 @@
 :- consult(matrix).
 
+:- (dynamic player_score/2).
+
 %Tells if from position (I,J) in the wall can be reached going through tiles the position (I,Goal)
 can_reach_horiz(_, _, Goal, Goal) :- !.
 can_reach_horiz(ID, I, J, Goal) :-

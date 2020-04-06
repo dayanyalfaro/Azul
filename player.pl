@@ -3,7 +3,7 @@
 :- consult(strategy).
 :- consult(punctuation).
 
-:- dynamic(player_score/2, player_wall/2, player_stair/2, player_penalty/2).
+:- dynamic(player_wall/2, player_stair/2, player_penalty/2).
 
 %-----------------Player ATTR----------------------------
 set_score(ID, SCORE) :-
@@ -27,9 +27,9 @@ init_player(ID) :-
 
 %-----(Fase 1)----Player action: pick a movement and execute it 
 
-%Update center after player takes tiles
+%Update center after player takes tiles from it
 update_environment(0,Color,Chip):-!, remove_tiles_center(Color,_),(Chip =:= 1 -> remove_chip_center();true).
-%Move the rest of tiles to the table center after the player take the selected tiles 
+%Move the rest of tiles to the table center after the player take the selected tiles from factory Source
 update_environment(Source, Color, _) :-
     remove_tiles_factory(Source, Color, _),
     remove_B_factory(Source, B),
@@ -97,7 +97,9 @@ place_colors(ID, Stair, Color, Amount) :-
 
 %Pick a movement and execute it 
 pick(ID) :-
-    strategy(ID,Source, Color, Amount, Stair, Chip),
+    get_moves(ID,All_moves),
+    strategy(ID,All_moves,Source, Color, Amount, Stair, Chip),
+    (not(is_game_move(ID,Stair,Color)); assert(ending_move(ID))),
     print([Source,Color,Amount,Stair,Chip]),
     update_environment(Source, Color, Chip),
     place_chip(ID, Chip),
