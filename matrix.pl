@@ -1,8 +1,6 @@
 :- consult(utils).
 :- dynamic(cell/5, stair/4, player_score/2, floor/4).
 
-
-
 %-----------------Matrix methods
 %Color Definition
 % 1 - Blue
@@ -10,6 +8,7 @@
 % 3 - Red 
 % 4 - Green
 % 5 - White
+
 init_wall([[1, 2, 3, 4, 5], [5, 1, 2, 3, 4], [4, 5, 1, 2, 3], [3, 4, 5, 1, 2], [2, 3, 4, 5, 1]]).
 
 init_matrix_wall_col(ID, I, [A, B, C, D, E]) :-
@@ -80,8 +79,6 @@ init_board(ID) :-
 
 print_floor_row(ID):- write('|'), floor(ID, 1, C1, _), floor(ID, 2, C2, _), floor(ID, 3, C3, _),floor(ID, 4, C4, _),floor(ID, 5, C5, _), floor(ID, 6, C6, _),floor(ID, 7, C7, _), print_cell(C1, 1), print_cell(C2, 1), print_cell(C3, 1), print_cell(C4, 1), print_cell(C5, 1), print_cell(C6, 1),  print_cell(C7, 1), write('                 |\n'), !.
 print_floor(ID):- !,  write('|-1  -1  -2  -2  -2  -3  -3                   |\n'), print_floor_row(ID).
-
-print_line():-  write('-----------------------------------------------\n').
 
 print_title(ID):- printText('\n Player:', blue), printText(ID, blue), printText('   Score:', red), player_score(ID, S), printText(S, red),  write('\n').
 

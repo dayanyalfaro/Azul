@@ -21,7 +21,7 @@ printText(S, Color):- ansi_format([bold, fg(Color)], S, []).
 
 print_end():-  printText('\n************************************************* END GAME ***********************************************\n', red).
 print_end_bag():- printText('\n************************************************* END GAME (Bag is empty) ***********************************************\n', red).
-
+print_line():-  write('-----------------------------------------------\n').
 
 printcolor(1) :- printText('1', blue), !.
 printcolor(2) :- printText('2', yellow), !.
