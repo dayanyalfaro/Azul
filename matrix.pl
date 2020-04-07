@@ -1,5 +1,5 @@
 :- consult(utils).
-:- dynamic(cell/5, stair/4, floor/4).
+:- dynamic(cell/5, stair/4, player_score/2, floor/4).
 
 
 
@@ -69,178 +69,20 @@ set_value_floor(ID, Pos, Value) :-
     retract(floor(ID, Pos, _, Penalty)),
     assert(floor(ID, Pos, Value, Penalty)).
 
+%Initialize the board of the player ID
 init_board(ID) :-
     init_matrix_wall(ID),
     init_floor(ID),
     init_stair(ID).
 
  %---------------------Print Board----------------------------
- % Print the wall cells
-print_cell(0, 1):- !, ansi_format([bold, fg(black)], '(_) ', []).  %is empty the floor cell
-print_cell(-1, 1):- !,  ansi_format([bold, fg(white)], '(1) ', []). %is chip 1 in the floor cell
-print_cell(1, 0) :- !,
-    ansi_format([bold, fg(blue)], '(_) ', []).
-print_cell(1, 1) :- !,
-    ansi_format([bold, fg(blue)], '(X) ', []).
-print_cell(2, 0) :- !,
-    ansi_format([bold, fg(yellow)], '(_) ', []).
-print_cell(2, 1) :- !,
-    ansi_format([bold, fg(yellow)], '(X) ', []).
-print_cell(3, 0) :- !,
-    ansi_format([bold, fg(red)], '(_) ', []).
-print_cell(3, 1) :- !,
-    ansi_format([bold, fg(red)], '(X) ', []).
-print_cell(4, 0) :- !,
-    ansi_format([bold, fg(green)], '(_) ', []).
-print_cell(4, 1) :- !,
-    ansi_format([bold, fg(green)], '(X) ', []).
-print_cell(5, 0) :- !,
-    ansi_format([bold, fg(white)], '(_) ', []).
-print_cell(5, 1) :- !,
-    ansi_format([bold, fg(white)], '(X) ', []).
 
-% Print the stair cells
-print_stair(0) :-
-    ansi_format([bold, fg(cyan)], '(_) ', []).
-print_stair(1) :-
-    ansi_format([bold, fg(blue)], '(X) ', []).
-print_stair(2) :-
-    ansi_format([bold, fg(yellow)], '(X) ', []).
-print_stair(3) :-
-    ansi_format([bold, fg(red)], '(X) ', []).
-print_stair(4) :-
-    ansi_format([bold, fg(green)], '(X) ', []).
-print_stair(5) :-
-    ansi_format([bold, fg(white)], '(X) ', []).
 
-% Print the stair rows
-print_stair_row(ID, 1) :- !,
-    write('|                '),
-    stair(ID, 1, 1, S),
-    print_stair(S),
-    write('  |  ').
-print_stair_row(ID, 2) :- !,
-    write('|            '),
-    stair(ID, 2, 2, S1),
-    print_stair(S1),
-    stair(ID, 2, 1, S2),
-    print_stair(S2),
-    write('  |  ').
-print_stair_row(ID, 3) :- !,
-    write('|        '),
-    stair(ID, 3, 3, S1),
-    print_stair(S1),
-    stair(ID, 3, 2, S2),
-    print_stair(S2),
-    stair(ID, 3, 1, S3),
-    print_stair(S3),
-    write('  |  ').
-print_stair_row(ID, 4) :- !,
-    write('|    '),
-    stair(ID, 4, 4, S1),
-    print_stair(S1),
-    stair(ID, 4, 3, S2),
-    print_stair(S2),
-    stair(ID, 4, 2, S3),
-    print_stair(S3),
-    stair(ID, 4, 1, S4),
-    print_stair(S4),
-    write('  |  ').
-print_stair_row(ID, 5) :-
-    write('|'),
-    stair(ID, 5, 5, S1),
-    print_stair(S1),
-    stair(ID, 5, 4, S2),
-    print_stair(S2),
-    stair(ID, 5, 3, S3),
-    print_stair(S3),
-    stair(ID, 5, 2, S4),
-    print_stair(S4),
-    stair(ID, 5, 1, S5),
-    print_stair(S5),
-    write('  |  ').
-
-% Print the wall rows
-print_wall_row(ID, 1) :- !,
-    cell(ID, 1, 1, C1, S1),
-    print_cell(C1, S1),
-    cell(ID, 1, 2, C2, S2),
-    print_cell(C2, S2),
-    cell(ID, 1, 3, C3, S3),
-    print_cell(C3, S3),
-    cell(ID, 1, 4, C4, S4),
-    print_cell(C4, S4),
-    cell(ID, 1, 5, C5, S5),
-    print_cell(C5, S5).
-print_wall_row(ID, 2) :- !,
-    cell(ID, 2, 1, C1, S1),
-    print_cell(C1, S1),
-    cell(ID, 2, 2, C2, S2),
-    print_cell(C2, S2),
-    cell(ID, 2, 3, C3, S3),
-    print_cell(C3, S3),
-    cell(ID, 2, 4, C4, S4),
-    print_cell(C4, S4),
-    cell(ID, 2, 5, C5, S5),
-    print_cell(C5, S5).
-print_wall_row(ID, 3) :- !,
-    cell(ID, 3, 1, C1, S1),
-    print_cell(C1, S1),
-    cell(ID, 3, 2, C2, S2),
-    print_cell(C2, S2),
-    cell(ID, 3, 3, C3, S3),
-    print_cell(C3, S3),
-    cell(ID, 3, 4, C4, S4),
-    print_cell(C4, S4),
-    cell(ID, 3, 5, C5, S5),
-    print_cell(C5, S5).
-print_wall_row(ID, 4) :- !,
-    cell(ID, 4, 1, C1, S1),
-    print_cell(C1, S1),
-    cell(ID, 4, 2, C2, S2),
-    print_cell(C2, S2),
-    cell(ID, 4, 3, C3, S3),
-    print_cell(C3, S3),
-    cell(ID, 4, 4, C4, S4),
-    print_cell(C4, S4),
-    cell(ID, 4, 5, C5, S5),
-    print_cell(C5, S5).
-print_wall_row(ID, 5) :- !,
-    cell(ID, 5, 1, C1, S1),
-    print_cell(C1, S1),
-    cell(ID, 5, 2, C2, S2),
-    print_cell(C2, S2),
-    cell(ID, 5, 3, C3, S3),
-    print_cell(C3, S3),
-    cell(ID, 5, 4, C4, S4),
-    print_cell(C4, S4),
-    cell(ID, 5, 5, C5, S5),
-    print_cell(C5, S5).
-
-%Print the board rows
-print_board_row(ID, 1) :- !,
-    print_stair_row(ID, 1),
-    print_wall_row(ID, 1),
-    write('| \n').
-print_board_row(ID, 2) :- !,
-    print_stair_row(ID, 2),
-    print_wall_row(ID, 2),
-    write('| \n').
-print_board_row(ID, 3) :- !,
-    print_stair_row(ID, 3),
-    print_wall_row(ID, 3),
-    write('| \n').
-print_board_row(ID, 4) :- !,
-    print_stair_row(ID, 4),
-    print_wall_row(ID, 4),
-    write('| \n').
-print_board_row(ID, 5):- print_stair_row(ID, 5), print_wall_row(ID, 5), write('| \n').
-
-print_floor_row(ID):- write('|'), floor(ID, 1, C1, _), floor(ID, 2, C2, _), floor(ID, 3, C3, _),floor(ID, 4, C4, _),floor(ID, 5, C5, _), floor(ID, 6, C6, _),floor(ID, 7, C7, _), print_cell(C1, 1), print_cell(C2, 1), print_cell(C3, 1), print_cell(C4, 1), print_cell(C5, 1), print_cell(C6, 1),  print_cell(C7, 1), write('                 |\n').
+print_floor_row(ID):- write('|'), floor(ID, 1, C1, _), floor(ID, 2, C2, _), floor(ID, 3, C3, _),floor(ID, 4, C4, _),floor(ID, 5, C5, _), floor(ID, 6, C6, _),floor(ID, 7, C7, _), print_cell(C1, 1), print_cell(C2, 1), print_cell(C3, 1), print_cell(C4, 1), print_cell(C5, 1), print_cell(C6, 1),  print_cell(C7, 1), write('                 |\n'), !.
 print_floor(ID):- !,  write('|-1  -1  -2  -2  -2  -3  -3                   |\n'), print_floor_row(ID).
 
 print_line():-  write('-----------------------------------------------\n').
 
+print_title(ID):- printText('\n Player:', blue), printText(ID, blue), printText('   Score:', red), player_score(ID, S), printText(S, red),  write('\n').
 
-
-print_board(ID):- !,printB('\n Player:'), printB(ID), write('\n'), print_line(), print_board_row(ID, 1), print_board_row(ID, 2), print_board_row(ID, 3), print_board_row(ID, 4), print_board_row(ID, 5), print_floor(ID), print_line().
+print_board(ID):-  print_title(ID), print_line(), print_board_row(ID, 1) , print_board_row(ID, 2), print_board_row(ID, 3), print_board_row(ID, 4), print_board_row(ID, 5), print_floor(ID), print_line().

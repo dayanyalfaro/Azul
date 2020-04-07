@@ -271,20 +271,17 @@ strategy(ID, All_moves,Source, Color, Amount, Stair, Chip) :-
     last(Moves,
          (_, Source, Color, Amount, Stair, Chip)),
          (not(is_game_move(ID,Stair,Color));is_winning(ID);is_somebody_ending_game()),
-          !,
-    print("OPTION1").
+          ! .%, print("OPTION1").
 %Get the move that overfill a stair by 1 and maximize the number of adyacencies in the wall 
 strategy(ID,All_moves, Source, Color, Amount, Stair, Chip) :-
     get_moves_overfill(ID,All_moves, 1, Moves),
     last(Moves,
-         (_, Source, Color, Amount, Stair, Chip)),(not(is_game_move(ID,Stair,Color));is_winning(ID);is_somebody_ending_game()), !,
-    print("OPTION2").
+         (_, Source, Color, Amount, Stair, Chip)),(not(is_game_move(ID,Stair,Color));is_winning(ID);is_somebody_ending_game()), ! .%,print("OPTION2").
 %Get the move that overfill a stair by 2 and maximize the number of adyacencies in the wall 
 strategy(ID,All_moves, Source, Color, Amount, Stair, Chip) :-
     get_moves_overfill(ID,All_moves, 2, Moves),
     last(Moves,
-         (_, Source, Color, Amount, Stair, Chip)),(not(is_game_move(ID,Stair,Color));is_winning(ID);is_somebody_ending_game()), !,
-    print("OPTION3").
+         (_, Source, Color, Amount, Stair, Chip)),(not(is_game_move(ID,Stair,Color));is_winning(ID);is_somebody_ending_game()), ! .%,print("OPTION3").
 %Get the move that underfill a stair that is not empty and minimize the number of empty spaces in the stair
 strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
     get_moves_incomplete_to_nonempty(ID,
@@ -292,8 +289,7 @@ strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
                                      
                                      [ (_, Source, Color, Amount, Stair, Chip)
                                      | _
-                                     ]), !,
-    print("OPTION4").
+                                     ]), !.%,    print("OPTION4").
 %Get the move that underfill a stair and minimize the number of empty spaces in the stair
 strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
     get_moves_incomplete(ID,
@@ -301,8 +297,7 @@ strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
                          
                          [ (_, Source, Color, Amount, Stair, Chip)
                          | _
-                         ]), !,
-    print("OPTION5").
+                         ]), !.%,    print("OPTION5").
 %Get the move with the least number of extra tiles and does not end the game
 strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
     setof((Extra, Src, Clr, Amnt, St, Ch),
@@ -310,8 +305,7 @@ strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
           
           [ (_, Source, Color, Amount, Stair, Chip)
           | _
-          ]), !,
-    print("OPTION6").
+          ]), ! .%,    print("OPTION6").
 %Get the move with the least number of extra tiles
 strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
     setof((Extra, Src, Clr, Amnt, St, Ch),
@@ -320,5 +314,4 @@ strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
           
           [ (_, Source, Color, Amount, Stair, Chip)
           | _
-          ]),
-    print("OPTION7").
+          ]).%,    print("OPTION7").
