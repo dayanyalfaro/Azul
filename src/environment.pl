@@ -153,36 +153,12 @@ remove_tile_lid(C) :-
 
 
 % add a tile to factory number ID
-<<<<<<< HEAD:environment.pl
 add_tile_factory(ID, 1):- !, factory(ID, B, Y, R, G, W), B1 is B + 1, set_factory(ID, B1, Y, R, G, W).
 add_tile_factory(ID, 2):- !, factory(ID, B, Y, R, G, W), Y1 is Y + 1, set_factory(ID, B, Y1, R, G, W).
 add_tile_factory(ID, 3):- !, factory(ID, B, Y, R, G, W), R1 is R + 1, set_factory(ID, B, Y, R1, G, W).
 add_tile_factory(ID, 4):- !, factory(ID, B, Y, R, G, W), G1 is G + 1, set_factory(ID, B, Y, R, G1, W).
 add_tile_factory(ID, 5):- !, factory(ID, B, Y, R, G, W), W1 is W + 1, set_factory(ID, B, Y, R, G, W1).
 add_tile_factory(_, -1).
-=======
-add_tile_factory(_, -1) :- !.
-add_tile_factory(ID, 1) :- !,
-    factory(ID, B, Y, R, G, W),
-    B1 is B+1,
-    set_factory(ID, B1, Y, R, G, W).
-add_tile_factory(ID, 2) :- !,
-    factory(ID, B, Y, R, G, W),
-    Y1 is Y+1,
-    set_factory(ID, B, Y1, R, G, W).
-add_tile_factory(ID, 3) :- !,
-    factory(ID, B, Y, R, G, W),
-    R1 is R+1,
-    set_factory(ID, B, Y, R1, G, W).
-add_tile_factory(ID, 4) :- !,
-    factory(ID, B, Y, R, G, W),
-    G1 is G+1,
-    set_factory(ID, B, Y, R, G1, W).
-add_tile_factory(ID, 5) :- !,
-    factory(ID, B, Y, R, G, W),
-    W1 is W+1,
-    set_factory(ID, B, Y, R, G, W1).
->>>>>>> 8e3c90a233b92f108fcee43bd5b62cf99fdacb10:src/environment.pl
 
 % initialize factory ID with 4 tiles. If the bag is empty no tile is added.
 init_factory(ID) :-
