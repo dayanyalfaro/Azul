@@ -135,6 +135,7 @@ add_tile_factory(ID, 2):- !, factory(ID, B, Y, R, G, W), Y1 is Y + 1, set_factor
 add_tile_factory(ID, 3):- !, factory(ID, B, Y, R, G, W), R1 is R + 1, set_factory(ID, B, Y, R1, G, W).
 add_tile_factory(ID, 4):- !, factory(ID, B, Y, R, G, W), G1 is G + 1, set_factory(ID, B, Y, R, G1, W).
 add_tile_factory(ID, 5):- !, factory(ID, B, Y, R, G, W), W1 is W + 1, set_factory(ID, B, Y, R, G, W1).
+add_tile_factory(_, -1).
 
 % initialize factory ID with 4 tiles. If the bag is empty no tile is added.
 init_factory(ID) :-
