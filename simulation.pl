@@ -6,29 +6,22 @@
 start_play(NumPlayers):- init_play(NumPlayers), create_players(NumPlayers).
 
 %check if any player complete one line in the wall
-check_end_play() :- check_stop(1).
+check_end_play() :-  check_stop(1).
 
-update_all_scores():- write("i am updating score success").
+fase1(2) :- finish_fase1(), !.
+fase1(1) :- next_turn(Next), print_table() , pick(Next), print_board(Next),  update_next_turn(), !.
+fase1(5).
 
+fase2(3) :- !, cant_players(Cant), update_all_walls(Cant). 
+fase2(6).
 
-init_round():- first_player(F), set_next_turn(F), fase1(_).
-
-
-fase1(2):- finish_fase1(), !, print_play_state().
-fase1(1) :- next_turn(Next), pick(Next), update_next_turn(), print_play_state(),  !.
-fase1(6).
-
-fase2(3):- !, cant_players(Cant), update_all_walls(Cant), !. 
-fase2(5).
-
-fase3(4) :- check_end_play(), ! , print_play_state(),  write('\n****************END GAME*******************\n') , update_all_scores(). 
-fase3(1) :- prepare_next_round(), !.                    %next round puede finalizar el juego
-fase3(7) :- !.
+fase3(4) :- check_end_play(), !, print_end(). 
+fase3(1) :- prepare_next_round(), !.       % If prepare_next_round fail => Stop the play(bag empty)             
+fase3(4) :- print_end_bag(). 
 
 simulate(1) :- fase1(X), simulate(X).
-simulate(2) :- write('End Fase 1\n'), fase2(X), simulate(X).
+simulate(2) :- printText('END FASE 1\n', red), fase2(X), simulate(X).
 simulate(3) :- fase3(X), simulate(X).
-simulate(4) :- write("hacer lo que tengo que hacer cuando se acabe").
-simulate(5) :- write("upss se rompio algo en la fase 2").
-simulate(6) :- write("upss se rompio algo en la fase 1").
-simulate(7) :- write("upss se rompio algo en la fase 3").
+simulate(4) :- cant_players(C), winners(C, W, S),  print_play_state(), printText('\n WINNERS !!!!!!', green),  print_winners(W, S).
+simulate(5) :- printText('(Error in FASE 1)', red).
+simulate(6) :- printText('(Error in FASE 2)', red).
