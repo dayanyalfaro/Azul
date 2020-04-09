@@ -98,17 +98,14 @@ create_bag(B, Y, R, G, W, [1|T]) :-
 init_bag() :-
     create_bag(20, 20, 20, 20, 20, L),
     assert(bag(100, L)). %init the bag with 20 tiles of each color
-
 add_tile_bag(C) :-
     bag(N, L),
     retract(bag(N, L)),
     N1 is N+1,
     assert(bag(N1, [C|L])). %add a tile of color C to the bag
-
 remove_tile_bag(-1) :-
     bag(N, _),
-    N =:= 0, !. % if the bag is empty => return color -1
-
+    N=:=0, !. % if the bag is empty => return color -1
 remove_tile_bag(C) :-
     bag(N, L),
     N2 is N-1,
@@ -144,7 +141,7 @@ add_tile_lid(C) :-
 remove_tile_lid(C) :-
     lid(N, L),
     remove_first(L, L1, C),
-    (   C =\= -1, !
+    (   C=\= -1, !
     ;   true
     ),
     retract(lid(N, L)),
@@ -156,23 +153,43 @@ remove_tile_lid(C) :-
 
 
 % add a tile to factory number ID
-add_tile_factory(ID, 1):- !, factory(ID, B, Y, R, G, W), B1 is B + 1, set_factory(ID, B1, Y, R, G, W).
-add_tile_factory(ID, 2):- !, factory(ID, B, Y, R, G, W), Y1 is Y + 1, set_factory(ID, B, Y1, R, G, W).
-add_tile_factory(ID, 3):- !, factory(ID, B, Y, R, G, W), R1 is R + 1, set_factory(ID, B, Y, R1, G, W).
-add_tile_factory(ID, 4):- !, factory(ID, B, Y, R, G, W), G1 is G + 1, set_factory(ID, B, Y, R, G1, W).
-add_tile_factory(ID, 5):- !, factory(ID, B, Y, R, G, W), W1 is W + 1, set_factory(ID, B, Y, R, G, W1).
+add_tile_factory(_, -1) :- !.
+add_tile_factory(ID, 1) :- !,
+    factory(ID, B, Y, R, G, W),
+    B1 is B+1,
+    set_factory(ID, B1, Y, R, G, W).
+add_tile_factory(ID, 2) :- !,
+    factory(ID, B, Y, R, G, W),
+    Y1 is Y+1,
+    set_factory(ID, B, Y1, R, G, W).
+add_tile_factory(ID, 3) :- !,
+    factory(ID, B, Y, R, G, W),
+    R1 is R+1,
+    set_factory(ID, B, Y, R1, G, W).
+add_tile_factory(ID, 4) :- !,
+    factory(ID, B, Y, R, G, W),
+    G1 is G+1,
+    set_factory(ID, B, Y, R, G1, W).
+add_tile_factory(ID, 5) :- !,
+    factory(ID, B, Y, R, G, W),
+    W1 is W+1,
+    set_factory(ID, B, Y, R, G, W1).
 
 % initialize factory ID with 4 tiles. If the bag is empty no tile is added.
 init_factory(ID) :-
-    set_factory(ID, 0, 0, 0, 0, 0), remove_tile_bag(C1),
-    add_tile_factory(ID, C1), remove_tile_bag(C2), 
-    add_tile_factory(ID, C2), remove_tile_bag(C3),
-    add_tile_factory(ID, C3), remove_tile_bag(C4),
+    set_factory(ID, 0, 0, 0, 0, 0),
+    remove_tile_bag(C1),
+    add_tile_factory(ID, C1),
+    remove_tile_bag(C2),
+    add_tile_factory(ID, C2),
+    remove_tile_bag(C3),
+    add_tile_factory(ID, C3),
+    remove_tile_bag(C4),
     add_tile_factory(ID, C4).
 
 % P: cant of players of the game, create 2 factorys per player + 1 factory.
 create_factory(P) :-
-    P =:= 0, !,
+    P=:=0, !,
     cant_factory(C),
     ID is C+1,
     init_factory(ID),
@@ -194,38 +211,82 @@ init_all_factorys() :-
     create_factory(P).
 
 %remove all tiles of color a specific from the factory ID and return in Cant the number of this tiles eliminated
-remove_tiles_factory(ID, 1, Cant) :- !, factory(ID, Cant, Y, R, G, W), set_factory(ID, 0, Y, R, G, W).
-remove_tiles_factory(ID, 2, Cant) :- !, factory(ID, B, Cant, R, G, W), set_factory(ID, B, 0, R, G, W).
-remove_tiles_factory(ID, 3, Cant) :- !, factory(ID, B, Y, Cant, G, W), set_factory(ID, B, Y, 0, G, W).
-remove_tiles_factory(ID, 4, Cant) :- !, factory(ID, B, Y, R, Cant, W), set_factory(ID, B, Y, R, 0, W).
-remove_tiles_factory(ID, 5, Cant) :- !, factory(ID, B, Y, R, G, Cant), set_factory(ID, B, Y, R, G, 0).
+remove_tiles_factory(ID, 1, Cant) :- !,
+    factory(ID, Cant, Y, R, G, W),
+    set_factory(ID, 0, Y, R, G, W).
+remove_tiles_factory(ID, 2, Cant) :- !,
+    factory(ID, B, Cant, R, G, W),
+    set_factory(ID, B, 0, R, G, W).
+remove_tiles_factory(ID, 3, Cant) :- !,
+    factory(ID, B, Y, Cant, G, W),
+    set_factory(ID, B, Y, 0, G, W).
+remove_tiles_factory(ID, 4, Cant) :- !,
+    factory(ID, B, Y, R, Cant, W),
+    set_factory(ID, B, Y, R, 0, W).
+remove_tiles_factory(ID, 5, Cant) :- !,
+    factory(ID, B, Y, R, G, Cant),
+    set_factory(ID, B, Y, R, G, 0).
 
 %Check if a the ID factory is empty
-empty_factory(ID):- factory(ID, B, Y, R, G, W), B =:= 0, Y =:= 0, R =:= 0, G =:= 0, W =:= 0. 
+empty_factory(ID) :-
+    factory(ID, B, Y, R, G, W),
+    B=:=0,
+    Y=:=0,
+    R=:=0,
+    G=:=0,
+    W=:=0. 
 
 %Check if all factory are empty
-empty_all_factory():-  findall(ID, empty_factory(ID), L), cant_factory(Cant), length(L, Cant).
+empty_all_factory() :-
+    findall(ID, empty_factory(ID), L),
+    cant_factory(Cant),
+    length(L, Cant).
 
 
 %------------------------Center of the Table-------------------------------------------------
-
-init_center() :- set_center(1, 0, 0, 0, 0, 0).
+init_center() :-
+    set_center(1, 0, 0, 0, 0, 0).
 
 %add K tiles of color C to the center
-add_tile_center(1, K) :- !, center(T1, B, Y, R, G, W), B1 is B + K, set_center(T1, B1, Y, R, G, W).
-add_tile_center(2, K) :- !, center(T1, B, Y, R, G, W), Y1 is Y + K, set_center(T1, B, Y1, R, G, W).
-add_tile_center(3, K) :- !, center(T1, B, Y, R, G, W), R1 is R + K, set_center(T1, B, Y, R1, G, W).
-add_tile_center(4, K) :- !, center(T1, B, Y, R, G, W), G1 is G + K, set_center(T1, B, Y, R, G1, W).
-add_tile_center(5, K) :- !, center(T1, B, Y, R, G, W), W1 is W + K, set_center(T1, B, Y, R, G, W1).
+add_tile_center(1, K) :- !,
+    center(T1, B, Y, R, G, W),
+    B1 is B+K,
+    set_center(T1, B1, Y, R, G, W).
+add_tile_center(2, K) :- !,
+    center(T1, B, Y, R, G, W),
+    Y1 is Y+K,
+    set_center(T1, B, Y1, R, G, W).
+add_tile_center(3, K) :- !,
+    center(T1, B, Y, R, G, W),
+    R1 is R+K,
+    set_center(T1, B, Y, R1, G, W).
+add_tile_center(4, K) :- !,
+    center(T1, B, Y, R, G, W),
+    G1 is G+K,
+    set_center(T1, B, Y, R, G1, W).
+add_tile_center(5, K) :- !,
+    center(T1, B, Y, R, G, W),
+    W1 is W+K,
+    set_center(T1, B, Y, R, G, W1).
 
 %remove the initial chip from the center
-remove_chip_center():- center(1, B, Y, R, G, W),set_center(0, B, Y, R, G, W).
+remove_chip_center() :-
+    center(1, B, Y, R, G, W),
+    set_center(0, B, Y, R, G, W).
 
 %remove all tiles of color C from the center and return in Cant the number of this tiles eliminated
-remove_tiles_center(1, Cant) :- !, center(T1, Cant, Y, R, G, W), set_center(T1, 0, Y, R, G, W).
-remove_tiles_center(2, Cant) :- !, center(T1, B, Cant, R, G, W), set_center(T1, B, 0, R, G, W).
-remove_tiles_center(3, Cant) :- !,  center(T1, B, Y, Cant, G, W), set_center(T1, B, Y, 0, G, W).
-remove_tiles_center(4, Cant) :- !,  center(T1, B, Y, R, Cant, W), set_center(T1, B, Y, R, 0, W).
+remove_tiles_center(1, Cant) :- !,
+    center(T1, Cant, Y, R, G, W),
+    set_center(T1, 0, Y, R, G, W).
+remove_tiles_center(2, Cant) :- !,
+    center(T1, B, Cant, R, G, W),
+    set_center(T1, B, 0, R, G, W).
+remove_tiles_center(3, Cant) :- !,
+    center(T1, B, Y, Cant, G, W),
+    set_center(T1, B, Y, 0, G, W).
+remove_tiles_center(4, Cant) :- !,
+    center(T1, B, Y, R, Cant, W),
+    set_center(T1, B, Y, R, 0, W).
 remove_tiles_center(5, Cant) :- !,  center(T1, B, Y, R, G, Cant), set_center(T1, B, Y, R, G, 0).
 
 
@@ -247,7 +308,7 @@ init_all_floor(Cant) :- init_floor(Cant), Id is Cant - 1, init_all_floor(Id).
 
 restart_all_floor() :- retractall(floor(_,_,_,_)), cant_players(Cant), init_all_floor(Cant).
 
-prepare_next_round() :- fill_bag(), bag(Cant, _), Cant =\= 0, init_all_factorys(), init_center(), first_player(P), set_next_turn(P), restart_all_floor().
+prepare_next_round() :-  bag(Cant, _), (Cant =\= 0; fill_bag()),bag(Cant1, _),Cant1 =\= 0, init_all_factorys(), init_center(), first_player(P), set_next_turn(P), restart_all_floor().
 
 
 

@@ -1,7 +1,7 @@
 :- consult(environment).
 :- consult(punctuation).
 
-:- (dynamic ending_move/1).
+% :- (dynamic ending_move/1).
 
 %Color Definition
 % 1 - Blue
@@ -190,43 +190,15 @@ factible_move(ID, Color, Stair) :-
     ),
     cell(ID, Stair, _, Color, 0).
 
-%Selects the R movement in a list of all factible movements and place the result in Source, Color, Amount, Stair, Chip 
-select_move(1, [(Source, Color, Amount, Stair, Chip)|_], Source, Color, Amount, Stair, Chip) :- !.
-select_move(R, [_|Moves], Source, Color, Amount, Stair, Chip) :-
-    K is R-1,
-    select_move(K,
-                Moves,
-                Source,
-                Color,
-                Amount,
-                Stair,
-                Chip). 
-
-
-random_strategy(_, All_moves, Source, Color, Amount, Stair, Chip) :-
-    length(All_moves, L),
-    N is L+1,
-    random(1, N, R),
-    select_move(R,
-                All_moves,
-                Source,
-                Color,
-                Amount,
-                Stair,
-                Chip).
-
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 is_winning(Player) :-
     setof((Score, ID), player_score(ID, Score), Scores),
     last(Scores,  (_, Player)).
 
-is_game_move(ID, I, Color) :-
+is_not_game_move(ID, I, Color) :-
     calculate_points_horizontal(ID, I, Color, Amount),
-    Amount=:=5.
-
-is_somebody_ending_game() :-
-    ending_move(_), !.
+    Amount=\=5.
 
 
 %Free is the amount of free space in Stair of player ID
@@ -246,7 +218,7 @@ get_adyacents(ID, I, C, Adyacents) :-
 %Leaves in Moves a list sorted by adyacency in the wall that contains the moves that fill a stair with K extra tiles
 get_moves_overfill(ID, All_moves, K, Moves) :-
     setof((Ady, Src, Clr, Amnt, St, Ch),
-          Free^(member((Src, Clr, Amnt, St, Ch), All_moves), get_free_space(ID, St, Free), Amnt-Free=:=K, get_adyacents(ID, St, Clr, Ady)),
+          Free^(member((Src, Clr, Amnt, St, Ch), All_moves), get_free_space(ID, St, Free), Amnt-Free=:=K, get_adyacents(ID, St, Clr, Ady), (is_not_game_move(ID, St, Clr);is_winning(ID))),
           Moves).
 
 %Leaves in Moves a list of moves that dont fill a stair sorted by incomplete space in the stair 
@@ -262,24 +234,19 @@ get_moves_incomplete_to_nonempty(ID, All_moves, Moves) :-
           Moves).
 
 
-
 %Get the move that completely fill a stair and maximize the number of adyacencies in the wall 
-strategy(ID, All_moves,Source, Color, Amount, Stair, Chip) :-
-    get_moves_overfill(ID,All_moves, 0, Moves),
+strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
+    get_moves_overfill(ID, All_moves, 0, Moves),
     last(Moves,
-         (_, Source, Color, Amount, Stair, Chip)),
-         (not(is_game_move(ID,Stair,Color));is_winning(ID);is_somebody_ending_game()),
-          ! .%, print("OPTION1").
+         (_, Source, Color, Amount, Stair, Chip)), !.
+
 %Get the move that overfill a stair by 1 and maximize the number of adyacencies in the wall 
-strategy(ID,All_moves, Source, Color, Amount, Stair, Chip) :-
-    get_moves_overfill(ID,All_moves, 1, Moves),
+strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
+    get_moves_overfill(ID, All_moves, 1, Moves),
     last(Moves,
-         (_, Source, Color, Amount, Stair, Chip)),(not(is_game_move(ID,Stair,Color));is_winning(ID);is_somebody_ending_game()), ! .%,print("OPTION2").
-%Get the move that overfill a stair by 2 and maximize the number of adyacencies in the wall 
-strategy(ID,All_moves, Source, Color, Amount, Stair, Chip) :-
-    get_moves_overfill(ID,All_moves, 2, Moves),
-    last(Moves,
-         (_, Source, Color, Amount, Stair, Chip)),(not(is_game_move(ID,Stair,Color));is_winning(ID);is_somebody_ending_game()), ! .%,print("OPTION3").
+         (_, Source, Color, Amount, Stair, Chip)), !.
+
+
 %Get the move that underfill a stair that is not empty and minimize the number of empty spaces in the stair
 strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
     get_moves_incomplete_to_nonempty(ID,
@@ -287,7 +254,7 @@ strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
                                      
                                      [ (_, Source, Color, Amount, Stair, Chip)
                                      | _
-                                     ]), !.%,    print("OPTION4").
+                                     ]), !.
 %Get the move that underfill a stair and minimize the number of empty spaces in the stair
 strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
     get_moves_incomplete(ID,
@@ -295,21 +262,20 @@ strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
                          
                          [ (_, Source, Color, Amount, Stair, Chip)
                          | _
-                         ]), !.%,    print("OPTION5").
+                         ]), !.
 %Get the move with the least number of extra tiles and does not end the game
 strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
     setof((Extra, Src, Clr, Amnt, St, Ch),
-          Free^(member((Src, Clr, Amnt, St, Ch), All_moves), get_free_space(ID, St, Free),Extra is Amnt-Free,Extra>=0, not(is_game_move(ID, St, Clr))),
+          Free^(member((Src, Clr, Amnt, St, Ch), All_moves), get_free_space(ID, St, Free), Extra is Amnt-Free, is_not_game_move(ID, St, Clr)),
           
           [ (_, Source, Color, Amount, Stair, Chip)
           | _
-          ]), ! .%,    print("OPTION6").
+          ]), !.
 %Get the move with the least number of extra tiles
 strategy(ID, All_moves, Source, Color, Amount, Stair, Chip) :-
     setof((Extra, Src, Clr, Amnt, St, Ch),
-          Free^(member((Src, Clr, Amnt, St, Ch),
-                 All_moves),get_free_space(ID, St, Free),Extra is Amnt-Free),
+          Free^(member((Src, Clr, Amnt, St, Ch), All_moves), get_free_space(ID, St, Free), Extra is Amnt-Free),
           
           [ (_, Source, Color, Amount, Stair, Chip)
           | _
-          ]).%,    print("OPTION7").
+          ]).

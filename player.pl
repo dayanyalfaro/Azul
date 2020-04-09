@@ -7,6 +7,13 @@
 
 %-----------------Player ATTR----------------------------
 set_score(ID, SCORE) :-
+    SCORE=<0,
+    (   retract(player_score(ID, _)), !
+    ;   true
+    ),
+    assert(player_score(ID, 0)), !.
+set_score(ID, SCORE) :-
+    SCORE>0,
     (   retract(player_score(ID, _)), !
     ;   true
     ),
@@ -31,7 +38,8 @@ create_players(Cant) :- init_player(Cant), Id is Cant - 1, create_players(Id).
 %-----(Fase 1)----Player action: pick a movement and execute it 
 
 %Update center after player takes tiles from it
-update_environment(0,Color,Chip):-!, remove_tiles_center(Color,_),(Chip =:= 1 -> remove_chip_center();true).
+update_environment(0,Color,1):-!, remove_tiles_center(Color,_), remove_chip_center().
+update_environment(0,Color,0):-!, remove_tiles_center(Color,_).
 %Move the rest of tiles to the table center after the player take the selected tiles from factory Source
 update_environment(Source, Color, _) :-
     remove_tiles_factory(Source, Color, _),
@@ -48,7 +56,7 @@ update_environment(Source, Color, _) :-
 
 
 %Place tile by tile on the lid
-update_lid(Amount, _) :- Amount =< 0.  %SEE: debe haber un corte
+update_lid(Amount, _) :- Amount =< 0,!. 
 update_lid(Amount, Color) :-
     Amount > 0,
     add_tile_lid(Color),
@@ -71,8 +79,8 @@ update_floor(ID, [P|Unset], Color, Amount) :-
 
 %Place the extra tiles of the stair on the floor
 place_extras(_, _, Extra) :-
-    Extra=<0, !.                        %SEE: CORTE AQUI
-place_extras(_, Color, Extra) :- %Poner ID
+    Extra=<0,!.                        
+place_extras(ID, Color, Extra) :-  
     Extra>0,
     findall(P, floor(ID, P, 0, _), Unset),
     update_floor(ID, Unset, Color, Extra),
@@ -103,7 +111,6 @@ pick(ID) :-
     printText('\n Turn of Player ', red), printText(ID, red), printText(' -> ', red),
     get_moves(ID,All_moves),
     strategy(ID,All_moves,Source, Color, Amount, Stair, Chip),
-    (not(is_game_move(ID,Stair,Color)); assert(ending_move(ID))),
     printPick([Source,Color,Amount,Stair,Chip]), %TODO: modificar para que diga la accion que va a hacer el jugador
     update_environment(Source, Color, Chip),
     place_chip(ID, Chip),
@@ -154,19 +161,29 @@ floor_penalty(ID) :-
     sum_list(Penalties, Sum),
     player_score(ID, Current_Score),
     Score is Current_Score+Sum,
-    set_score(ID, Score),
-    (   Score<0
-    ->  set_score(ID, 0)
-    ;   true
-    ).
+    set_score(ID, Score).
 
+floor_to_lid([]):-!.
+floor_to_lid([C|L]):- add_tile_lid(C),floor_to_lid(L).
+
+clean_floor(ID) :-
+    findall(C,
+            ( floor(ID, _, C, _),
+              C=\=0,
+              C =\= -1
+            ),
+            Colors),
+    floor_to_lid(Colors).
+            
 
 %Get the most left position of a stair that is colored ( means it is complete) and updates the wall and stairs
 build_wall(ID) :-
-    setof((Stair, Color),
-          (stair(ID, Stair, Stair, Color), Color=\=0),Stairs),
-    build_and_clean(ID, Stairs),
-    floor_penalty(ID).
+    ((setof((Stair, Color),
+          (stair(ID, Stair, Stair, Color), Color=\=0),
+          Stairs),
+    build_and_clean(ID, Stairs));true),
+    floor_penalty(ID),
+    clean_floor(ID).
 
 
 update_all_walls(0):- !.
