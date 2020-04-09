@@ -1,4 +1,4 @@
-:- consult(matrix).
+:- consult(board).
 :- consult(utils).
 
 :- dynamic(cant_players/1,

@@ -1,4 +1,4 @@
-:- consult(matrix).
+:- consult(board).
 
 :- (dynamic player_score/2).
 
