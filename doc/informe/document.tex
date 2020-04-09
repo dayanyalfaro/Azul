@@ -18,7 +18,7 @@
 
 
 \lstset{ %
-	language=prolog, % lenguaje
+	language=Prolog, % lenguaje
 	basicstyle=\normalsize\ttfamily,
 	keywordstyle=\color{blue},
 	commentstyle=\color{blue!50},
@@ -96,7 +96,125 @@
 \tableofcontents
 \newpage
 
+\section {Ideas generales de la solución}
+$Azul$ como la mayoría de los juegos de mesa requieren de una mesa, o soporte físico para poder jugarse, en estos el azar es una característica muy importante además del uso de estrategias por cada uno de los jugadores . Para la reproducción del juego es fundamental una primera etapa de análisis y diseño orientado a objetos con el objetivo de representar cada una de sus partes, siendo esto posible mediante la creación de objetos dinámicos.
+
+Al analizar las especificaciones y reglas del juego se tuvo en cuenta que los jugadores actuarían como agentes sin la intervención de un usuario y tienen conocimiento del estado del juego(ambiente) en todo momento, además de poder modificar su propio estado y el de su ambiente. A cada jugador se le asigna un $Id$ y está constituido por un tablero personal conformado por la zona de preparación(\lstinline|Stair|) , el muro(\lstinline|Wall|), la fila de penalización(\lstinline|Floor|) y una puntuación parcial(\lstinline|Score|). Mientras que el estado del ambiente está dado por los respectivos estados de las factorías, el centro de la mesa, la tapa de la caja y el turno del siguiente jugador.
+
+\subsection{Diseño y modelación}
+En base a los conceptos encontrados durante el análisis del problema, nuestra propuesta de solución agrupa los predicados implementados en los siguientes módulos:
+
+\begin{itemize}
+	\item {\bf environment.pl} : Contiene los predicados que modelan el transcurso de la partida a través de la definición de los conceptos del ambiente del juego vistos anteriormente. Aquí se definen los predicados dinámicos: 
+		\begin{itemize}
+			\item \lstinline| first_player(P).| triunfa si P es el $Id$ del primer jugador de la siguiente ronda. En la primera ronda se comienza por el jugador con $Id = 1$ y en lo adelante será el primero en seleccionar azulejos del centro  
+			
+			\item \lstinline| next_turn(P).| triunfa si P es el $Id$ del jugador que le corresponde la siguiente jugada.
+			
+			\item \lstinline| cant_factory(F).| triunfa si F es la cantidad de factorías existentes en la partida actual.
+			
+			\item \lstinline| factory(F, B, Y, R, G, W).| triunfa si la factoría con $Id$ = F tiene cantidades de azulejos iguales a B azules, Y amarillos, R rojos, G verdes y W blancos.
+			
+			\item  \lstinline| center(Chip, B, Y, R, G, W).| triunfa si el centro de la mesa tiene cantidades de azulejos iguales a B azules, Y amarillos, R rojos, G verdes y W blancos y además si la ficha de jugador inicial aún está en el centro entonces Chip = 1, si no Chip = 0.
+			\item \lstinline| bag(N, L).| triunfa si la bolsa tiene N azulejos y L es la lista que los contiene. Por ejemplo si la bolsa tuviera un azulejo de cada color entonces N sería igua a 5 y L = $[1, 2, 3, 4, 5]$.
+			
+			\item \lstinline| lid(n, L).| triunfa si la tapa tiene N azulejos y L es la lista que los contiene.
+			
+			\item \lstinline| stop_play(S).| TODO
+			
+		\end{itemize}
+		
+		La facilidad de unificación brindada por el lenguaje nos permite consultar cada uno de los atributos anteriores en cualquier momento deseado, siempre y cuando estos estén debidamente inicializados en la base de conocimiento de Prolog. Por ejemplo si queremos saber el estado de la factoría número 2 ejecutamos \lstinline| factory(2, B, Y, R, G, W).|  y las variables libres unificarán de la siguiente forma \space \lstinline| B = 1 , Y = 2, R = 1, G = W, W = 0.| indicando que tiene 1 azulejo azul, 2 amarillos y 1 rojo.\\
+		
+		Cada uno de los atributos anteriores tiene su correspondiente predicado que modifica sus valores en la base de conocimiento, por ejemplo:
+	\begin{lstlisting}
+set_first_player(ID) :- (retract(first_player(_)), !;  true),
+                             assert(first_player(ID)).
+
+set_factory(ID,B,Y,R,G,W) :- (retract(factory(ID,_,_,_,_,_)), !; true),
+                                assert(factory(ID,B,Y,R,G,W)).
+	\end{lstlisting}
+	
+	Para el caso de la bolsa(\lstinline|bag|), el centro(\lstinline|center|) y la tapa(\lstinline|lid|) , las modificaciones que se les pueden realizar son la adición o eliminación de un azulejo y el rellenado de la bolsa con todos los azulejos de la tapa una vez se quede vacía.
+	
+	A continuación se observan los predicados que encapsulan el concepto de bolsa, que como ya se ha dicho, está representada por una lista con los colores de sus azulejos. Esta representación es muy ventajosa a la hora de extraer un azulejo al azar para poner en una factoría. La forma de resolverlo es generando un número random entre 1 y la longitud de la lista y el color que ocupe esta posición será retornado y por consiguiente eliminado de la bolsa. 
+	
+\begin{lstlisting}
+create_bag(0, 0, 0, 0, 0, []) :- !.
+create_bag(0, 0, 0, 0, W, [5|T]) :- !, W1 is W-1, create_bag(0, 0, 0, 0, W1, T).
+create_bag(0, 0, 0, G, W, [4|T]) :- !, G1 is G-1, create_bag(0, 0, 0, G1, W, T).
+create_bag(0, 0, R, G, W, [3|T]) :- !, R1 is R-1, create_bag(0, 0, R1, G, W, T).
+create_bag(0, Y, R, G, W, [2|T]) :- !, Y1 is Y-1, create_bag(0, Y1, R, G, W, T).
+create_bag(B, Y, R, G, W, [1|T]) :- B1 is B-1, create_bag(B1, Y, R, G, W, T). 	
+
+init_bag() :-
+	create_bag(20, 20, 20, 20, 20, L),
+	assert(bag(100, L)). 
+
+remove_tile_bag(-1) :- bag(N, _), N=:=0, !. %si la bolsa está vacía retorna -1
+remove_tile_bag(C) :- bag(N, L), N2 is N-1, N1 is N+1, random(1, N1, I),
+                      retract(bag(N, L)), remove(L, I, R, C), assert(bag(N2, R)).
+
+fill_bag() :- bag(N1, B), retract(bag(N1, B)), 
+               lid(N2, L), retract(lid(N2, L)),
+               concat(B, L, R), N3 is N1 + N2, %concatena la bolsa y la tapa
+               assert(bag(N3,R)), assert(lid(0, [])). %la tapa está vacía ahora
+
+\end{lstlisting}
+
+	
+	
+	\item {\bf board.pl} En este se encuentran los predicados que definen las partes del tablero de cada jugador. El muro está constituido por 25 celdas dinámicas que en conjunto forman una matriz de $5x5$. Cada celda tiene asignado el $Id$ del jugador correspondiente, la fila, columna, el color de la misma y si está ocupada por un azulejo o no. El predicado \lstinline|cell/5| es dinámico y para actualizar o consultar una posición en el muro se utiliza el siguiente predicado:
+\begin{lstlisting}
+
+set_value_wall(ID, I, J, C, V) :- retract(cell(ID, I, J, C, _)),
+                                      assert(cell(ID, I, J, C, V)).
+:- cell(2, 3, 4, C, V). % C y V unifican con el color y el estado de la 
+                        % celda (3, 4) del muro del jugador 2
+% Si la celda tiene el azulejo correspondiente => V = 1, si no V = 0
+	
+\end{lstlisting}
+
+	La representación de la zona de preparación y de la linea de penalización son similares al muro, pues para ellos también se tienen predicados dinámicos \lstinline|stair/4| y \lstinline|floor/5|
+	
+\begin{lstlisting}
+% ID: jugador,  (I, J) posición,  C:color del azulejo
+set_value_stair(ID, I, J, C) :-   % si la posición está vacía => C = 0  
+	retract(stair(ID, I, J, _)),
+	assert(stair(ID, I, J, C)).
+
+% ID: jugador,   Pos: lugar que ocupa en la linea, C: color del azulejo
+%                    C = 0 => vacía  
+% C = -1 => ficha jugador inicial
+set_value_floor(ID, Pos, C) :-                
+	retract(floor(ID, Pos, _, Penalty)),    
+	assert(floor(ID, Pos, C, Penalty)).
+	
+%Inicializa el tablero del jugador Id
+init_board(ID) :-
+	init_matrix_wall(ID),
+	init_floor(ID),
+	init_stair(ID).
+
+\end{lstlisting}
+	
+	
+	
+	\item {\bf player.pl}
+	\item {\bf strategy.pl}	
+	\item {\bf punctuation.pl}
+	\item {\bf utils.pl} Contiene predicados auxiliares para el trabajo con listas y también imprimir en consola la salida de la simulación.
+	\item {\bf simulation.pl} Es el archivo principal que se ejecuta. TODO. En la sección 3 se explica con más detalle.
+
+\end{itemize}
+
+
+
+
+
+
 \section {Estrategia}
+
 Cada jugador tiene que decidir qué azulejos va a tomar, de dónde los va a tomar y dónde los va a colocar, para esto se implementó una estrategia de selección que se va describir a continuación.
 Como punto de partida es necesario tener un conjunto de todos los movimientos factibles a realizar, donde por movimiento factible se entiende que sea válido colocar en la fila seleccionada (o el suelo) los azulejos de un determinado color tomados de una de las fábricas o el centro de la mesa. Para obtener esto se crearon todas las combinaciones de movimientos posibles, o sea, tanto válidos como inválidos y se filtraron mediante la evaluación del predicado \lstinline|factible_move| para determinar si eran factibles o no.
 
@@ -216,8 +334,10 @@ Sea \lstinline|All_moves| el conjunto de movimientos factibles para el jugador \
 \end{lstlisting}
 \end{itemize}
 
+\section {Simulación}
 
-    
+\section{Ejecución}
+
 
 
 
