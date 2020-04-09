@@ -304,8 +304,8 @@ print_factory(ID):- factory(ID, B, Y, R, G, W), printText('Factory ', blue), pri
 print_all_factory(Cant, ID):- ID > Cant, !, write('\n'), !.
 print_all_factory(Cant, ID):- print_factory(ID), write('    '), ID1 is ID + 1, print_all_factory(Cant, ID1).
 
-print_bag():- write('\n'), bag(S, B), printText('BAG->  Size: ', blue), write(S), printText('  Tiles: ', blue), write(B), write('\n').
-print_lid():- lid(N, L), printText('LID->  Size: ', blue), write(N), printText('  Tiles: ', blue), write(L), write('\n').
+print_bag():- write('\n'), bag(S, _), printText('BAG->  Size: ', blue), write(S).
+print_lid():- lid(N, _), printText('\nLID->  Size: ', blue), write(N).
 print_center():- center(T, B, Y, R, G, W), printText('Center-> ', blue), printText(B, blue), printText(Y, yellow),  printText(R, red), printText(G, green), printText(W, white), ((T =:= 1) -> printText(' |1|', white);true).
 
 print_all_boards(Cant, ID):- ID > Cant, !.

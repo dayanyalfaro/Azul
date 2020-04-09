@@ -3,7 +3,7 @@
 :- consult(strategy).
 :- consult(player).
 
-start_play(NumPlayers):- init_play(NumPlayers), create_players(NumPlayers).
+start_play(NumPlayers):- init_play(NumPlayers), create_players(NumPlayers), simulate(1).
 
 %check if any player complete one line in the wall
 check_end_play() :-  check_stop(1).
