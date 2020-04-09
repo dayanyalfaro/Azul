@@ -181,7 +181,7 @@ build_wall(ID) :-
     ((setof((Stair, Color),
           (stair(ID, Stair, Stair, Color), Color=\=0),
           Stairs),
-    build_and_clean(ID, Stairs));true),
+    build_and_clean(ID, Stairs)),!;true),
     floor_penalty(ID),
     clean_floor(ID).
 
