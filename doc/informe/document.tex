@@ -102,7 +102,7 @@ $Azul$ como la mayoría de los juegos de mesa requieren de una mesa, o soporte fí
 Al analizar las especificaciones y reglas del juego se tuvo en cuenta que los jugadores actuarían como agentes sin la intervención de un usuario y tienen conocimiento del estado del juego(ambiente) en todo momento, además de poder modificar su propio estado y el de su ambiente. A cada jugador se le asigna un $Id$ y está constituido por un tablero personal conformado por la zona de preparación(\lstinline|Stair|) , el muro(\lstinline|Wall|), la fila de penalización(\lstinline|Floor|) y una puntuación parcial(\lstinline|Score|). Mientras que el estado del ambiente está dado por los respectivos estados de las factorías, el centro de la mesa, la tapa de la caja y el turno del siguiente jugador.
 
 \subsection{Diseño y modelación}
-En base a los conceptos encontrados durante el análisis del problema, nuestra propuesta de solución agrupa los predicados implementados en los siguientes módulos:
+Sobre la base de los conceptos encontrados durante el análisis del problema, nuestra propuesta de solución agrupa los predicados implementados en los siguientes módulos:
 
 \begin{itemize}
 	\item {\bf environment.pl} : Contiene los predicados que modelan el transcurso de la partida a través de la definición de los conceptos del ambiente del juego vistos anteriormente. Aquí se definen los predicados dinámicos: 
@@ -162,7 +162,7 @@ fill_bag() :- bag(N1, B), retract(bag(N1, B)),
 
 \end{lstlisting}
 
-	En la figura 1 se muestra cómo lucen las componentes del ambiente en la salida de la consola. El número $|1|$ en blanco que aparece en Center indica la presencia de la ficha de jugador inicial, mientras que en la figura 3 esta fichita se encuentra en la linea de penalización del jugador 2. En este caso la partida es de dos jugadores por lo que hay 5 factorías, cada una de ellas con sus cuatro azulejos iniciales y la bolsa con los 80 restantes.
+	En la figura 1 se muestra cómo lucen las componentes del ambiente en la salida de la consola. El número $|1|$ en blanco que aparece en Center indica la presencia de la ficha de jugador inicial, mientras que en la figura 3 esta fichita se encuentra en la línea de penalización del jugador 2. En este caso la partida es de dos jugadores por lo que hay 5 factorías, cada una de ellas con sus cuatro azulejos iniciales y la bolsa con los 80 restantes.
 	
 	\begin{figure}[!ht]
 		\centering
@@ -183,7 +183,7 @@ set_value_wall(ID, I, J, C, V) :- retract(cell(ID, I, J, C, _)),
 	
 \end{lstlisting}
 
-	La representación de la zona de preparación y de la linea de penalización son similares al muro, pues para ellos también se tienen predicados dinámicos \lstinline|stair/4| y \lstinline|floor/5|
+	La representación de la zona de preparación y de la línea de penalización son similares al muro, pues para ellos también se tienen predicados dinámicos \lstinline|stair/4| y \lstinline|floor/5|
 	
 \begin{lstlisting}
 % ID: jugador,  (I, J) posición,  C:color del azulejo
@@ -191,7 +191,7 @@ set_value_stair(ID, I, J, C) :-   % si la posición está vacía => C = 0
 	retract(stair(ID, I, J, _)),
 	assert(stair(ID, I, J, C)).
 
-% ID: jugador,   Pos: lugar que ocupa en la linea, C: color del azulejo
+% ID: jugador,   Pos: lugar que ocupa en la línea, C: color del azulejo
 %                    C = 0 => vacía  
 % C = -1 => ficha jugador inicial
 set_value_floor(ID, Pos, C) :-                
@@ -225,7 +225,7 @@ init_board(ID) :-
 	
 	\newpage
 	
-	\item {\bf player.pl}: Contiene los predicados relacionados con la inicializacion de un jugador y la interacción de este con el ambiente en las diferentes fases del juego.
+	\item {\bf player.pl}: Contiene los predicados relacionados con la inicialización de un jugador y la interacción de este con el ambiente en las diferentes fases del juego.
 	
 	\begin{lstlisting}
 	init_player(ID) :-
@@ -447,7 +447,7 @@ Sea \lstinline|All_moves| el conjunto de movimientos factibles para el jugador \
 \end{itemize}
 
 \section {Simulación}
-Una partida de $Azul$ consta de un número indeterminado de rondas hasta que se cumpla alguna de las  condiciones de finalización, estas pueden ser que al menos un jugador complete una linea en su muro o que se acaben los azulejos y ya no sea posible preparar una nueva ronda. Cada ronda consta a su vez de tres fases:
+Una partida de $Azul$ consta de un número indeterminado de rondas hasta que se cumpla alguna de las  condiciones de finalización, estas pueden ser que al menos un jugador complete una línea en su muro o que se acaben los azulejos y ya no sea posible preparar una nueva ronda. Cada ronda consta a su vez de tres fases:
 
 \begin{itemize}
 	\item [1.] Selección de azulejos(Oferta de Factoría)
@@ -494,13 +494,13 @@ simulate(6) :- printText('(Error in FASE 2)', red).
 	
 \end{lstlisting}
 
-Una vez llegado a la cláusula \lstinline| simulate(4)| es porque se cumplió una de las condiciones de parada, ya sea que triunfó la primera cláusula del predicado \lstinline| fase3(4)|(algún jugador completó una linea) o porque falló \lstinline| fase3(1)| al no poder preparase la siguiente ronda. Estando en este punto se procede a actualizar las puntuaciones de todos los jugadores para definir aquellos que resulten vencedores de la partida.
+Una vez llegado a la cláusula \lstinline| simulate(4)| es porque se cumplió una de las condiciones de parada, ya sea que triunfó la primera cláusula del predicado \lstinline| fase3(4)|(algún jugador completó una línea) o porque falló \lstinline| fase3(1)| al no poder preparase la siguiente ronda. Estando en este punto se procede a actualizar las puntuaciones de todos los jugadores para definir aquellos que resulten vencedores de la partida.
 
 
 
 \section{Ejecución}
 
-Para correr el programa es necesario estar situado sobre la carpeta src y en consola ejecutar los siguientes comandos:
+Para correr el programa es necesario estar situado sobre la carpeta /src y en consola ejecutar los siguientes comandos:
 
 
 
