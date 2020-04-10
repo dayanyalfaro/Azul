@@ -1,4 +1,4 @@
-:- consult(matrix).
+:- consult(board).
 :- consult(environment).
 :- consult(strategy).
 :- consult(player).

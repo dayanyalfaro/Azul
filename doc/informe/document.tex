@@ -200,9 +200,94 @@ init_board(ID) :-
 	
 	
 	
-	\item {\bf player.pl}
-	\item {\bf strategy.pl}	
-	\item {\bf punctuation.pl}
+	\item {\bf player.pl}: Contiene los predicados relacionados con la inicializacion de un jugador y la interacción de este con el ambiente en las diferentes fases del juego.
+	
+	\begin{lstlisting}
+	init_player(ID) :-
+	set_score(ID, 0),
+	init_board(ID).
+	\end{lstlisting}
+	
+	
+	En la Fase I el jugador debe tomar todos los azulejos de un mismo color de una de las ubicaciones posibles y colocarlos en alguna de las filas de su zona de preparación o en el suelo. Para la realización de estas acciones se definió el predicado \lstinline|pick/1|.
+	
+	\begin{lstlisting}
+	pick(ID) :-
+		get_moves(ID,All_moves),
+		strategy(ID,All_moves,Source, Color, Amount, Stair, Chip),
+		update_environment(Source, Color, Chip),
+		place_chip(ID, Chip),
+		place_colors(ID, Stair, Color, Amount).
+	\end{lstlisting}
+	
+		\begin{itemize}
+		\item \lstinline| get_moves(ID,All_moves)|: triunfa si \lstinline|All_moves| es la lista que contiene todas los movimientos factibles a realizar por el jugador \lstinline|ID|.
+		
+		\item \lstinline| strategy(ID,All_moves,Source, Color, Amount, Stair, Chip)|: triunfa si de todos los movimientos factibles para el jugador \lstinline|ID| contenidos en \lstinline|All_moves| se escoge mover de la ubicación \lstinline|Source| una cantidad \lstinline|Amount| de azulejos de color \lstinline|Color| hacia \lstinline|Stair| con la presencia (\lstinline|Chip| = 1) o no (\lstinline|Chip| = 0) de la ficha de jugador inicial.
+		
+		\item \lstinline| update_environment(Source, Color, Chip)|:triunfa si
+		\begin{itemize}
+			\item \lstinline|Source|$ = 0$: se eliminan del centro de la mesa los azulejos de color \lstinline|Color| y si \lstinline|Chip| = 1 se elimina tambi\'en la ficha de jugador inicial.
+			\item \lstinline|Source|$\neq 0$: se eliminan de la factor\'ia \lstinline|Source| los azulejos de color \lstinline|Color|.
+		\end{itemize} 
+		
+		\item \lstinline| place_chip(ID, Chip)| triunfa si
+				\begin{itemize}
+			\item \lstinline|Chip = 0|.
+			\item \lstinline|Chip = 1|: si hay espacio en el suelo del jugador \lstinline|ID| se coloca all\'i la ficha de jugador inicial. El predicado \lstinline|first_player/1| es actualizado. 
+		\end{itemize} 
+		\item  \lstinline| place_colors(ID, Stair, Color, Amount)| : triunfa si
+		\begin{itemize}
+			\item \lstinline|Stair|$ = 0$: se coloca en el espacio que est\'e disponible del suelo  mediante el predicado \lstinline|update_floor/4| lo que se pueda de los \lstinline|Amount| azulejos de color \lstinline|Color| y si hay algunos que no caben se colocan en la tapa de la caja mediante el predicado \lstinline|update_lid/4|.  
+			\item \lstinline|Stair|$\neq 0$: se colocan en la fila \lstinline|Stair| la cantidad de \lstinline|Amount| que sea posible de azulejos de color \lstinline|Color| mediante el predicado \lstinline|update_stair/5|, aquellos que no quepan se colocan en el suelo mientras se pueda mediante el predicado \lstinline|update_floor/4| y si hay alg\'un azulejo que no fue posible colocar en el suelo es enviado a la tapa de la caja mediante el predicado \lstinline|update_lid/4|.   		
+		\end{itemize} 
+	\end{itemize}
+	En la Fase II el jugador transporta un azulejo de cada una de las filas completadas al muro y por cada uno anota puntos, as\'i como pierde puntos por cada azulejo presente en el suelo. Para simular estas acciones se defini\'o el predicado \lstinline|build_wall/1|.
+		\begin{lstlisting}
+	build_wall(ID) :-
+		((setof((Stair, Color),
+		(stair(ID, Stair, Stair, Color), Color=\=0),Stairs),
+		build_and_clean(ID, Stairs)),!;true),
+		floor_penalty(ID),
+		clean_floor(ID).
+	
+	build_and_clean(_, []) :- !.
+	build_and_clean(ID, [(Stair, Color)|Stairs]) :-
+		set_value_wall(ID, Stair, _, Color, 1),
+		calculate_points_horizontal(ID,Stair,Color,Horizontals),
+		calculate_points_vertical(ID,Stair,Color,Verticals),
+		update_score(ID,Horizontals,Verticals),
+		clean_stair(ID, Stair, Color),
+		build_and_clean(ID, Stairs).
+	\end{lstlisting}
+	\begin{itemize}
+		\item \lstinline|calculate_points_horizontal(ID,Stair,Color,Horizontals)|: triunfa si \lstinline|Horizontals| es la cantidad de azulejos directamente conectados horizontalmente a la posici\'on del color \lstinline|Color| en la fila \lstinline|Stair| del muro del jugador \lstinline|ID|.
+		\item \lstinline|calculate_points_vertical(ID,Stair,Color,Verticals)|: triunfa si \lstinline|Verticals| es la cantidad de azulejos directamente conectados verticalmente a la posici\'on del color \lstinline|Color| de la fila \lstinline|Stair| del muro del jugador \lstinline|ID|.
+		\item \lstinline|update_score(ID,Horizontals,Verticals)|:triunfa si se actualiza el predicado \lstinline|player_score/2| para el jugador \lstinline|ID| seg\'un las cantidades de \lstinline|Horizontals| y \lstinline|Verticals|.
+		\item \lstinline|clean_stair(ID, Stair, Color)|: triunfa si los azulejos de las filas completas de la zona de preparaci\'on que no son colocados en el muro son colocados en la tapa de la caja mediante el predicado \lstinline|update_lid/4|.
+		\item \lstinline|floor_penalty(ID)|: triunfa si la puntuaci\'on del jugador \lstinline|ID| es actualizada seg\'un los azulejos contenidos en su suelo. 
+		\item \lstinline|clean_floor(ID)|: triunfa si todos los azulejos colocados en el suelo del jugador \lstinline|ID| son agregados a la tapa de la caja.
+	\end{itemize}
+	\item {\bf punctuation.pl} Contiene todos los predicados relacionados con mantener la puntuaci\'on de un jugador.\\\\
+	 Se define el pedicado din\'amico \lstinline|player_score(ID,Score)| que triunfa si \lstinline|Score| es la puntuaci\'on del jugador \lstinline|ID|.
+	 \begin{lstlisting}
+	 set_score(ID, SCORE) :-
+	 SCORE=<0, !,
+	 (   retract(player_score(ID, _)), !
+	 ;   true
+	 ),
+	 assert(player_score(ID, 0)), !.
+	 set_score(ID, SCORE) :-
+	 SCORE>0,
+	 (   retract(player_score(ID, _)), !
+	 ;   true
+	 ),
+	 assert(player_score(ID, SCORE)). 
+	\end{lstlisting}
+	
+	Aqu\'i tambi\'en encontramos los predicados auxiliares necesarios para determinar en cu\'anto var\'ia la puntuaci\'on de un jugador, seg\'un las reglas del juego, tanto en la Fase II como al final de la partida, as\'i como los predicados para reflejar dichas variaciones en \lstinline|player_score/2|.
+	   
+	\item {\bf strategy.pl}	Contiene los predicados que definen la estrategia de selecci\'on que va a seguir el jugador. En la secci\'on 3 se describe detalladamente cu\'al va a ser dicha estrategia. 
 	\item {\bf utils.pl} Contiene predicados auxiliares para el trabajo con listas y también imprimir en consola la salida de la simulación.
 	\item {\bf simulation.pl} Es el archivo principal que se ejecuta. TODO. En la sección 3 se explica con más detalle.
 
@@ -215,7 +300,7 @@ init_board(ID) :-
 
 \section {Estrategia}
 
-Cada jugador tiene que decidir qué azulejos va a tomar, de dónde los va a tomar y dónde los va a colocar, para esto se implementó una estrategia de selección que se va describir a continuación.
+Cada jugador tiene que decidir qué azulejos va a tomar, de dónde los va a tomar y dónde los va a colocar, para esto se implementó una estrategia de selección que se va describir a continuación.\\
 Como punto de partida es necesario tener un conjunto de todos los movimientos factibles a realizar, donde por movimiento factible se entiende que sea válido colocar en la fila seleccionada (o el suelo) los azulejos de un determinado color tomados de una de las fábricas o el centro de la mesa. Para obtener esto se crearon todas las combinaciones de movimientos posibles, o sea, tanto válidos como inválidos y se filtraron mediante la evaluación del predicado \lstinline|factible_move| para determinar si eran factibles o no.
 
 Sea \lstinline|All_moves| el conjunto de movimientos factibles para el jugador \lstinline|ID|, va a estar representado por una lista de tuplas con el formato \lstinline|[(Source, Color, Amount, Stair, Chip),...]| que indica que se toman \lstinline|Amount| fichas de color \lstinline|Color|(1,2,3,4,5 según el color) desde \lstinline|Source| (0,1...$k$) si son del suelo o de la fábrica $k$ respectivamente) hacia la fila \lstinline|Stair| y \lstinline|Chip| va a ser 0 o 1 en dependencia de si se tomó o no la ficha de jugador inicial. Si \lstinline|All_moves| $\neq \emptyset$  se va a seleccionar un movimiento en el siguiente orden:

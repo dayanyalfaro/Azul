@@ -1,4 +1,4 @@
-:- consult(matrix).
+:- consult(board).
 :- consult(utils).
 
 :- dynamic(cant_players/1,
@@ -153,11 +153,26 @@ remove_tile_lid(C) :-
 
 
 % add a tile to factory number ID
-add_tile_factory(ID, 1):- !, factory(ID, B, Y, R, G, W), B1 is B + 1, set_factory(ID, B1, Y, R, G, W).
-add_tile_factory(ID, 2):- !, factory(ID, B, Y, R, G, W), Y1 is Y + 1, set_factory(ID, B, Y1, R, G, W).
-add_tile_factory(ID, 3):- !, factory(ID, B, Y, R, G, W), R1 is R + 1, set_factory(ID, B, Y, R1, G, W).
-add_tile_factory(ID, 4):- !, factory(ID, B, Y, R, G, W), G1 is G + 1, set_factory(ID, B, Y, R, G1, W).
-add_tile_factory(ID, 5):- !, factory(ID, B, Y, R, G, W), W1 is W + 1, set_factory(ID, B, Y, R, G, W1).
+add_tile_factory(ID, 1) :- !,
+    factory(ID, B, Y, R, G, W),
+    B1 is B+1,
+    set_factory(ID, B1, Y, R, G, W).
+add_tile_factory(ID, 2) :- !,
+    factory(ID, B, Y, R, G, W),
+    Y1 is Y+1,
+    set_factory(ID, B, Y1, R, G, W).
+add_tile_factory(ID, 3) :- !,
+    factory(ID, B, Y, R, G, W),
+    R1 is R+1,
+    set_factory(ID, B, Y, R1, G, W).
+add_tile_factory(ID, 4) :- !,
+    factory(ID, B, Y, R, G, W),
+    G1 is G+1,
+    set_factory(ID, B, Y, R, G1, W).
+add_tile_factory(ID, 5) :- !,
+    factory(ID, B, Y, R, G, W),
+    W1 is W+1,
+    set_factory(ID, B, Y, R, G, W1).
 add_tile_factory(_, -1).
 
 % initialize factory ID with 4 tiles. If the bag is empty no tile is added.
@@ -272,11 +287,48 @@ remove_tiles_center(3, Cant) :- !,
 remove_tiles_center(4, Cant) :- !,
     center(T1, B, Y, R, Cant, W),
     set_center(T1, B, Y, R, 0, W).
-remove_tiles_center(5, Cant) :- !,  center(T1, B, Y, R, G, Cant), set_center(T1, B, Y, R, G, 0).
+remove_tiles_center(5, Cant) :- !,
+    center(T1, B, Y, R, G, Cant),
+    set_center(T1, B, Y, R, G, 0).
 
 
 %check if the center is empty
-empty_center():- center(_, B, Y, R, G, W), B =:= 0, Y =:= 0, R =:= 0, G =:= 0, W =:= 0. 
+empty_center() :-
+    center(_, B, Y, R, G, W),
+    B=:=0,
+    Y=:=0,
+    R=:=0,
+    G=:=0,
+    W=:=0. 
+
+%-----------Check End of Game
+check_line(ID, Row, L) :-
+    findall(_,
+            cell(ID, Row, _, _, 1),
+            T),
+    length(T, L). 
+        
+%Check if the number of completed lines in the wall is > 0
+check_all_lines(ID, Row) :-
+    Row=<5,
+    check_line(ID, Row, 5).
+check_all_lines(ID, Row) :-
+    Row=<5,
+    R2 is Row+1,
+    check_all_lines(ID, R2).
+
+check_stop_player(ID) :-
+    check_all_lines(ID, 1).
+
+check_stop(ID) :-
+    cant_players(Cant),
+    ID=<Cant,
+    check_stop_player(ID).
+check_stop(ID) :-
+    cant_players(Cant),
+    ID=<Cant,
+    ID1 is ID+1,
+    check_stop(ID1).
 
 
 %------------------------Play Initialization-------------------------------------------------------------------------------
