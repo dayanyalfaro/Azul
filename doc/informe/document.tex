@@ -118,9 +118,9 @@ En base a los conceptos encontrados durante el análisis del problema, nuestra pr
 			\item  \lstinline| center(Chip, B, Y, R, G, W).| triunfa si el centro de la mesa tiene cantidades de azulejos iguales a B azules, Y amarillos, R rojos, G verdes y W blancos y además si la ficha de jugador inicial aún está en el centro entonces Chip = 1, si no Chip = 0.
 			\item \lstinline| bag(N, L).| triunfa si la bolsa tiene N azulejos y L es la lista que los contiene. Por ejemplo si la bolsa tuviera un azulejo de cada color entonces N sería igua a 5 y L = $[1, 2, 3, 4, 5]$.
 			
-			\item \lstinline| lid(n, L).| triunfa si la tapa tiene N azulejos y L es la lista que los contiene.
+			\item \lstinline| lid(N, L).| triunfa si la tapa tiene N azulejos y L es la lista que los contiene.
 			
-			\item \lstinline| stop_play(S).| TODO
+			\item \lstinline| stop_play(S).| trinfa si se cumple condición de parada del juego y S = 1, si el juego no ha terminado S = 0.
 			
 		\end{itemize}
 		
@@ -259,7 +259,7 @@ init_board(ID) :-
 		\item \lstinline| place_chip(ID, Chip)| triunfa si
 				\begin{itemize}
 			\item \lstinline|Chip = 0|.
-			\item \lstinline|Chip = 1|: si hay espacio en el suelo del jugador \lstinline|ID| se coloca all\'i la ficha de jugador inicial. El predicado \lstinline|first_player/1| es actualizado. 
+			\item \lstinline|Chip = 1|: si hay espacio en el suelo del jugador \lstinline|ID| se coloca all\'i la ficha de jugador inicial. El predicado \lstinline|first_player/1| es actualizado para la siguiente ronda. 
 		\end{itemize} 
 		\item  \lstinline| place_colors(ID, Stair, Color, Amount)| : triunfa si
 		\begin{itemize}
@@ -312,9 +312,11 @@ init_board(ID) :-
 	
 	Aqu\'i tambi\'en encontramos los predicados auxiliares necesarios para determinar en cu\'anto var\'ia la puntuaci\'on de un jugador, seg\'un las reglas del juego, tanto en la Fase II como al final de la partida, as\'i como los predicados para reflejar dichas variaciones en \lstinline|player_score/2|.
 	   
-	\item {\bf strategy.pl}	Contiene los predicados que definen la estrategia de selecci\'on que va a seguir el jugador. En la secci\'on 3 se describe detalladamente cu\'al va a ser dicha estrategia. 
+	\item {\bf strategy.pl}	Contiene los predicados que definen la estrategia de selecci\'on que va a seguir el jugador. En la secci\'on 2 se describe detalladamente cu\'al va a ser dicha estrategia. 
+	
 	\item {\bf utils.pl} Contiene predicados auxiliares para el trabajo con listas y también imprimir en consola la salida de la simulación.
-	\item {\bf simulation.pl} Es el archivo principal que se ejecuta. TODO. En la sección 3 se explica con más detenimiento.
+	
+	\item {\bf simulation.pl} Es el archivo principal que se ejecuta, pues contiene los predicados referentes a la ejecución de las tres fases. En la sección 3 se explica con más detenimiento.
 
 \end{itemize}
 
@@ -458,7 +460,7 @@ A modo de resumen del flujo de una partida en el juego, se observan en la figura
 
 \begin{figure}[!ht]
 	\centering
-	\includegraphics[scale=0.44]{./image/model3.png}
+	\includegraphics[scale=0.5]{./image/model3.png}
 	\caption{\small{ }}
 \end{figure} 
 
@@ -488,20 +490,27 @@ simulate(3) :- fase3(X), simulate(X).
 simulate(4) :- cant_players(C), winners(C, W, S),  print_play_state(), printText('\n WINNERS !!!!!!', green),  print_winners(W, S).
 simulate(5) :- printText('(Error in FASE 1)', red).
 simulate(6) :- printText('(Error in FASE 2)', red).
+
 	
 \end{lstlisting}
 
-
-
-
-
+Una vez llegado a la cláusula \lstinline| simulate(4)| es porque se cumplió una de las condiciones de parada, ya sea que triunfó la primera cláusula del predicado \lstinline| fase3(4)|(algún jugador completó una linea) o porque falló \lstinline| fase3(1)| al no poder preparase la siguiente ronda. Estando en este punto se procede a actualizar las puntuaciones de todos los jugadores para definir aquellos que resulten vencedores de la partida.
 
 
 
 \section{Ejecución}
 
+Para correr el programa es necesario estar situado sobre la carpeta src y en consola ejecutar los siguientes comandos:
 
 
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[scale=0.5]{./image/exe.png}
+	\caption{\small{ }}
+\end{figure} 
+
+El predicado \lstinline| start_play(C)|  recibe la cantidad de jugadores de la partida.
 
 
 \end{document}

@@ -301,6 +301,22 @@ empty_center() :-
     G=:=0,
     W=:=0. 
 
+%------------------------Play Initialization-------------------------------------------------------------------------------
+
+init_play(CantPlayers):- set_cant_players(CantPlayers), set_first_player(1), set_next_turn(1), init_bag(), init_lid(), init_all_factorys(), init_center().
+
+%------------------------FASES Actions---------------------------------------------------------------------------------------
+
+%Check if all factorys and the center is empty(End FASE 1)
+finish_fase1() :- empty_all_factory(), empty_center().
+
+init_all_floor(1) :- init_floor(1), ! . 
+init_all_floor(Cant) :- init_floor(Cant), Id is Cant - 1, init_all_floor(Id).
+
+restart_all_floor() :- retractall(floor(_,_,_,_)), cant_players(Cant), init_all_floor(Cant).
+
+prepare_next_round() :-  bag(Cant, _), (Cant =\= 0; fill_bag()),bag(Cant1, _),Cant1 =\= 0, init_all_factorys(), init_center(), first_player(P), set_next_turn(P), restart_all_floor().
+
 %-----------Check End of Game
 check_line(ID, Row, L) :-
     findall(_,
@@ -329,25 +345,6 @@ check_stop(ID) :-
     ID=<Cant,
     ID1 is ID+1,
     check_stop(ID1).
-
-
-%------------------------Play Initialization-------------------------------------------------------------------------------
-
-init_play(CantPlayers):- set_cant_players(CantPlayers), set_first_player(1), set_next_turn(1), init_bag(), init_lid(), init_all_factorys(), init_center().
-
-%------------------------FASES Actions---------------------------------------------------------------------------------------
-
-%Check if all factorys and the center is empty(End FASE 1)
-finish_fase1() :- empty_all_factory(), empty_center().
-
-init_all_floor(1) :- init_floor(1), ! . 
-init_all_floor(Cant) :- init_floor(Cant), Id is Cant - 1, init_all_floor(Id).
-
-restart_all_floor() :- retractall(floor(_,_,_,_)), cant_players(Cant), init_all_floor(Cant).
-
-prepare_next_round() :-  bag(Cant, _), (Cant =\= 0; fill_bag()),bag(Cant1, _),Cant1 =\= 0, init_all_factorys(), init_center(), first_player(P), set_next_turn(P), restart_all_floor().
-
-
 
 %------------------------Print PLay State------------------------------------------------------------------------------------
 
